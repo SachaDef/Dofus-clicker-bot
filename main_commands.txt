@@ -1,0 +1,11 @@
+Pour les GUI:
+- Return pour confirmer/retourner les données
+- Esc pour fermer la fenêtre et interrompre l'opération
+
+Bot principal:
+- home pour rentrer la position actuelle (fait automatiquement au launch)
+- end pour rentrer la destination désirée et lancer le déplacement
+- f1 pour afficher la position du bot, parfois différente de la position réelle si erreur
+- f2 pour lancer l'enregistrement des coordonnées de clics, et f2 à nouveau pour compléter l'enregistrement
+- f3 pour kill le bot
+
