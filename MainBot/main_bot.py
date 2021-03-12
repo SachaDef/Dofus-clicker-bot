@@ -1,9 +1,9 @@
 from time import sleep
 from ahk import AHK
-from Utilities.utilities_message_boxes import AutoCloseMessageBox, ConfirmBox
+from Utilities.utilities_message_boxes import ConfirmBox
 
 
-##### BOT INITIALIZATION #####
+# ==== BOT INITIALIZATION ==== #
 class DofusBot:
     def __init__(self, x_pos, y_pos):
         self.travel_running = False
@@ -18,126 +18,146 @@ class DofusBot:
         self.mouse_coords = []
         self.maps_file = "..\\Maps_Paths\\farming_maps.txt"
 
-##### START/STOP METHODS #####
+# ==== START/STOP METHODS ==== #
     def travel_start(self):
         self.travel_running = True
+
     def travel_stop(self):
         self.travel_running = False
+
     def map_creation_start(self):
         self.map_creation_running = True
+
     def map_creation_stop(self):
         self.map_creation_running = False
+
     def exit(self):
         self.travel_stop()
         self.map_creation_stop()
 
-#### POSITION/DESTINATION MODIFICATION METHODS #####
-    def xP(self):
+# ==== POSITION/DESTINATION MODIFICATION METHODS ==== #
+    def xp(self):
         self.x_pos += 1
-    def xM(self):
+
+    def xm(self):
         self.x_pos -= 1
-    def yP(self):
+
+    def yp(self):
         self.y_pos += 1
-    def yM(self):
+
+    def ym(self):
         self.y_pos -= 1
 
     def set_pos(self, coords):
         self.x_pos = coords[0]
         self.y_pos = coords[1]
+
     def set_dest(self, coords):
         self.x_dest = coords[0]
         self.y_dest = coords[1]
 
-##### MOVEMENT BY CLICK METHODS #####
+# ==== MOVEMENT BY CLICK METHODS ==== #
     def move_right(self):
-        self.xP()
+        self.xp()
         current_window = self.clicker.active_window
-        self.window.click(x=1720, y=560)
+        current_pos = self.clicker.mouse_position
+        self.window.activate()
+        self.clicker.mouse_position = (1720, 560)
+        self.clicker.click()
         current_window.activate()
-        current_window.to_top()
-        current_window.maximize()
-        current_window.show()
+        self.clicker.mouse_position = current_pos
         self.previous = 'r'
+
     def move_left(self):
-        self.xM()
+        self.xm()
         current_window = self.clicker.active_window
-        self.window.click(x=200, y=560)
+        current_pos = self.clicker.mouse_position
+        self.window.activate()
+        self.clicker.mouse_position = (200, 560)
+        self.clicker.click()
         current_window.activate()
-        current_window.to_top()
-        current_window.maximize()
-        current_window.show()
+        self.clicker.mouse_position = current_pos
         self.previous = 'l'
+
     def move_up(self):
-        self.yM()
+        self.ym()
         current_window = self.clicker.active_window
+        current_pos = self.clicker.mouse_position
+        self.window.activate()
         if self.previous == 'd':
-            self.window.click(x=1120, y=40)
+            self.clicker.mouse_position = (1120, 40)
+            self.clicker.click()
         else:
-            self.window.click(x=960, y=40)
+            self.clicker.mouse_position = (960, 40)
+            self.clicker.click()
         current_window.activate()
-        current_window.to_top()
-        current_window.maximize()
-        current_window.show()
+        self.clicker.mouse_position = current_pos
         self.previous = 'u'
+
     def move_down(self):
-        self.yP()
+        self.yp()
         current_window = self.clicker.active_window
+        current_pos = self.clicker.mouse_position
+        self.window.activate()
         if self.previous == 'u':
-            self.window.click(x=1040, y=910)
+            self.clicker.mouse_position = (1040, 910)
+            self.clicker.click()
         else:
-            self.window.click(x=960, y=910)
+            self.clicker.mouse_position = (960, 910)
+            self.clicker.click()
         current_window.activate()
-        current_window.to_top()
-        current_window.maximize()
-        current_window.show()
+        self.clicker.mouse_position = current_pos
         self.previous = 'd'
+
     def reset(self):
         current_window = self.clicker.active_window
-        self.window.click(x=960, y=540)
+        current_pos = self.clicker.mouse_position
+        self.window.activate()
+        self.clicker.mouse_position = (960, 540)
+        self.clicker.click()
         current_window.activate()
-        current_window.to_top()
-        current_window.maximize()
-        current_window.show()
+        self.clicker.mouse_position = current_pos
         if self.previous == 'u':
-            self.yP()
+            self.yp()
         if self.previous == 'd':
-            self.yM()
+            self.ym()
         if self.previous == 'l':
-            self.xP()
+            self.xp()
         if self.previous == 'r':
-            self.xM()
+            self.xm()
         self.previous = None
         self.travel_stop()
 
-##### MOVEMENT AUTOMATION METHODS #####
+# ==== MOVEMENT AUTOMATION METHODS ==== #
     def travel_vertical(self, value):
         if value == 0:
             return
         if value < 0:
             for i in range(abs(value)):
                 if not self.travel_running:
-                    break
+                    return
                 self.move_up()
                 sleep(8)
         else:
             for i in range(value):
                 if not self.travel_running:
-                    break
+                    return
                 self.move_down()
                 sleep(8)
+
     def travel_horizontal(self, value):
         if value == 0:
             return
         if value < 0:
             for i in range(abs(value)):
                 if not self.travel_running:
-                    break
+                    return
                 self.move_left()
                 sleep(8)
         else:
             for i in range(value):
                 if not self.travel_running:
-                    break
+                    return
                 self.move_right()
                 sleep(8)
 
@@ -145,6 +165,7 @@ class DofusBot:
         if self.travel_running:
             self.travel_vertical(self.y_dest - self.y_pos)
             self.travel_horizontal(self.x_dest - self.x_pos)
+            return
 
     def append_map_clicks(self):
         confirm_append = ConfirmBox()

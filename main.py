@@ -1,15 +1,14 @@
-from tkinter import *
 from pynput import mouse as m
 from pynput import keyboard as k
 from MainBot.main_gui import *
 from MainBot.main_bot import *
+from Utilities.utilities_message_boxes import AutoCloseMessageBox
 
 
 def move():
 
     def on_press(key):
         if AHK().active_window == AHK().find_window(title=b"Dofus"):
-            print("Yes")
             if key == k.Key.left:
                 dofus_bot.move_left()
             elif key == k.Key.right:
@@ -51,7 +50,12 @@ def move():
                 else:
                     AutoCloseMessageBox('Dofus MapMakingBot', 'Coordonnées de clic supprimées', 1)
                 dofus_bot.map_creation_stop()
-        if key == k.Key.f3:
+        elif key == k.Key.f3:
+            if dofus_bot.map_creation_running or dofus_bot.travel_running:
+                dofus_bot.travel_stop()
+                dofus_bot.map_creation_stop()
+                AutoCloseMessageBox('Dofus MapMakingBot', 'Action interrompue', 1)
+        elif key == k.Key.f4:
             confirm_exit = ConfirmBox()
             confirm_exit.mainloop()
             if confirm_exit.value:
