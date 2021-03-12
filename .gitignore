@@ -4,6 +4,7 @@ venv
 MainBot/*.pyc
 Maps_Paths/*.pyc
 Utilities/*.pyc
+
 MainBot/__pycache__/
 Maps_Paths/__pycache__/
 Utilities/__pycache__/
