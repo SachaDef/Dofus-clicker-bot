@@ -4,6 +4,11 @@ venv
 MainBot/*.pyc
 Maps_Paths/*.pyc
 Utilities/*.pyc
+<<<<<<< HEAD
 MainBot/__pycache__/
 Maps_Paths/__pycache__/
+=======
+MainBot/__pycache/
+Maps_Paths/__pycache/
+>>>>>>> 06263447a6c9c0046c97a70525ec64dbb05f794e
 Utilities/__pycache__/
