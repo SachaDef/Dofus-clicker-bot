@@ -8,7 +8,7 @@ from Utilities.utilities_message_boxes import AutoCloseMessageBox
 def move():
 
     def on_press(key):
-        if AHK().active_window == AHK().find_window(title=b"Dofus"):
+        if "Dofus" in GetWindowText(GetForegroundWindow()):
             if key == k.Key.left:
                 dofus_bot.move_left()
             elif key == k.Key.right:
@@ -41,19 +41,19 @@ def move():
         elif key == k.Key.f1:
             AutoCloseMessageBox("Dofus TravelBot", f"X = {dofus_bot.x_pos}    Y = {dofus_bot.y_pos}", 1)
         elif key == k.Key.f2:
-            if not dofus_bot.map_creation_running:
+            if not dofus_bot.creating:
                 AutoCloseMessageBox("Dofus MapMakingBot", "Enregistrement des clics", 1)
-                dofus_bot.map_creation_start()
+                dofus_bot.creation_start()
             else:
                 if dofus_bot.append_map_clicks():
                     AutoCloseMessageBox('Dofus MapMakingBot', 'Coordonnées de clic ajoutées', 1)
                 else:
                     AutoCloseMessageBox('Dofus MapMakingBot', 'Coordonnées de clic supprimées', 1)
-                dofus_bot.map_creation_stop()
+                dofus_bot.creation_stop()
         elif key == k.Key.f3:
-            if dofus_bot.map_creation_running or dofus_bot.travel_running:
+            if dofus_bot.creating or dofus_bot.traveling:
                 dofus_bot.travel_stop()
-                dofus_bot.map_creation_stop()
+                dofus_bot.creation_stop()
                 AutoCloseMessageBox('Dofus MapMakingBot', 'Action interrompue', 1)
         elif key == k.Key.f4:
             confirm_exit = ConfirmBox()
@@ -64,9 +64,9 @@ def move():
                 mlistener.stop()
 
     def on_click(x, y, button, pressed):
-        if dofus_bot.map_creation_running:
+        if dofus_bot.creating:
             if pressed:
-                dofus_bot.mouse_coords.append((x, y))
+                dofus_bot.click_coords.append((x, y))
 
     bot_init_gui = DofusBotInterface(init=True)
     bot_init_gui.mainloop()
@@ -78,5 +78,5 @@ def move():
             mlistener.join()
         klistener.join()
 
-
-move()
+if __name__ == '__main__':
+    move()
