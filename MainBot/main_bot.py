@@ -1,9 +1,9 @@
 from ctypes import *
 from pynput.mouse import Controller, Button
 from win32gui import GetWindowText, GetForegroundWindow, SetForegroundWindow, SetActiveWindow, BringWindowToTop
+from threading import Thread
 from time import sleep
-from Utilities.utilities_message_boxes import ConfirmBox
-from threading import Thread, Lock
+from Utilities.utilities_message_boxes import ConfirmBox, AutoCloseMessageBox
 
 
 # ==== ALLOW PARTIAL MATCHES WHILE FINDING WINDOW ==== #
@@ -57,7 +57,9 @@ class DofusBot:
         self.x_dest = 0
         self.y_dest = 0
         self.previous_map = None
+        self.travel_thread = None
         self.cancel_flag = False
+        self.cancel_thread = None
         self.window_id = find_window("Dofus")[0]
         self.window_name = find_window("Dofus")[1]
         self.window_class = find_window("Dofus")[2]
@@ -69,9 +71,16 @@ class DofusBot:
 # ==== START/STOP METHODS ==== #
     def travel_start(self):
         self.traveling = True
+        self.travel_thread = Thread(target=self.travel_complete)
 
     def travel_stop(self):
+        # if self.travel_thread is not None:
+        #     try:
+        #         self.travel_thread.join()
+        #     except RuntimeError:
+        #         pass
         self.traveling = False
+        self.travel_thread = None
 
     def creation_start(self):
         self.creating = True
@@ -104,9 +113,16 @@ class DofusBot:
         sleep(0.07)
 
 # ==== MOVEMENT BY CLICK METHODS ==== #
+    def wait_3_sec(self):
+        self.cancel_flag = True
+        sleep(3)
+        self.cancel_flag = False
+
     def move_right(self):
         self.x_pos += 1
         prev_window = find_window(GetWindowText(GetForegroundWindow()))
+        self.cancel_thread = Thread(target=self.wait_3_sec)
+        self.cancel_thread.start()
         to_top(self.window_id)
         self.click(1720, 560)
         to_top(prev_window[0])
@@ -115,6 +131,8 @@ class DofusBot:
     def move_left(self):
         self.x_pos -= 1
         prev_window = find_window(GetWindowText(GetForegroundWindow()))
+        self.cancel_thread = Thread(target=self.wait_3_sec)
+        self.cancel_thread.start()
         to_top(self.window_id)
         self.click(200, 560)
         to_top(prev_window[0])
@@ -123,6 +141,8 @@ class DofusBot:
     def move_up(self):
         self.y_pos -= 1
         prev_window = find_window(GetWindowText(GetForegroundWindow()))
+        self.cancel_thread = Thread(target=self.wait_3_sec)
+        self.cancel_thread.start()
         to_top(self.window_id)
         self.click(1050, 40)
         to_top(prev_window[0])
@@ -131,6 +151,8 @@ class DofusBot:
     def move_down(self):
         self.y_pos += 1
         prev_window = find_window(GetWindowText(GetForegroundWindow()))
+        self.cancel_thread = Thread(target=self.wait_3_sec)
+        self.cancel_thread.start()
         to_top(self.window_id)
         self.click(950, 910)
         to_top(prev_window[0])
@@ -163,12 +185,14 @@ class DofusBot:
                     return
                 self.move_up()
                 sleep(8)
+                self.cancel_thread = None
         else:
             for i in range(value):
                 if not self.traveling:
                     return
                 self.move_down()
                 sleep(8)
+                self.cancel_thread = None
 
     def travel_horizontal(self, value):
         if value == 0:
@@ -179,23 +203,28 @@ class DofusBot:
                     return
                 self.move_left()
                 sleep(8)
+                self.cancel_thread = None
         else:
             for i in range(value):
                 if not self.traveling:
                     return
                 self.move_right()
                 sleep(8)
+                self.cancel_thread = None
 
-    def travel_final(self):
+    def travel_complete(self):
         if self.traveling:
             self.travel_vertical(self.y_dest - self.y_pos)
             self.travel_horizontal(self.x_dest - self.x_pos)
+            AutoCloseMessageBox("Dofus TravelBot", "Trajet fini", 1)
+            self.travel_stop()
             return
 
     def automate_travel(self):
-        travel_thread = Thread(target=self.travel_final)
-        travel_thread.start()
-        travel_thread.join()
+        if self.travel_thread is not None:
+            self.travel_thread.start()
+        # self.travel_stop()
+
 
     def append_map_clicks(self):
         confirm_append = ConfirmBox()

@@ -1,11 +1,11 @@
-from pynput import mouse as m
+# from pynput import mouse as m
 from pynput import keyboard as k
 from MainBot.main_gui import *
 from MainBot.main_bot import *
 from Utilities.utilities_message_boxes import AutoCloseMessageBox
 
 
-def move():
+def main():
 
     def on_press(key):
         if "Dofus" in GetWindowText(GetForegroundWindow()):
@@ -36,8 +36,8 @@ def move():
                 y_dest = int(bot_update_gui2.data[1])
                 dofus_bot.set_dest((x_dest, y_dest))
                 dofus_bot.automate_travel()
-                AutoCloseMessageBox("Dofus TravelBot", "Trajet fini", 1)
-            dofus_bot.travel_stop()
+                # AutoCloseMessageBox("Dofus TravelBot", "Trajet fini", 1)
+            # dofus_bot.travel_stop()
         elif key == k.Key.f1:
             AutoCloseMessageBox("Dofus TravelBot", f"X = {dofus_bot.x_pos}    Y = {dofus_bot.y_pos}", 1)
         elif key == k.Key.f2:
@@ -61,12 +61,12 @@ def move():
             if confirm_exit.value:
                 dofus_bot.exit()
                 klistener.stop()
-                mlistener.stop()
+                # mlistener.stop()
 
-    def on_click(x, y, button, pressed):
-        if dofus_bot.creating:
-            if pressed:
-                dofus_bot.click_coords.append((x, y))
+    # def on_click(x, y, _, pressed):
+    #     if dofus_bot.creating:
+    #         if pressed:
+    #             dofus_bot.click_coords.append((x, y))
 
     bot_init_gui = DofusBotInterface(init=True)
     bot_init_gui.mainloop()
@@ -74,9 +74,9 @@ def move():
         dofus_bot = DofusBot(x_pos=int(bot_init_gui.data[0]), y_pos=int(bot_init_gui.data[1]))
 
     with k.Listener(on_press=on_press) as klistener:
-        with m.Listener(on_click=on_click) as mlistener:
-            mlistener.join()
+        # with m.Listener(on_click=on_click) as mlistener:
+        #     mlistener.join()
         klistener.join()
 
 if __name__ == '__main__':
-    move()
+    main()
