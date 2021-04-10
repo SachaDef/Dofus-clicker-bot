@@ -184,14 +184,18 @@ class DofusBot:
                 if not self.traveling:
                     return
                 self.move_up()
-                sleep(8)
+                sleep(3)
+                if self.traveling:
+                    sleep(5)
                 self.cancel_thread = None
         else:
             for i in range(value):
                 if not self.traveling:
                     return
                 self.move_down()
-                sleep(8)
+                sleep(3)
+                if self.traveling:
+                    sleep(5)
                 self.cancel_thread = None
 
     def travel_horizontal(self, value):
@@ -202,21 +206,25 @@ class DofusBot:
                 if not self.traveling:
                     return
                 self.move_left()
-                sleep(8)
+                sleep(3)
+                if self.traveling:
+                    sleep(5)
                 self.cancel_thread = None
         else:
             for i in range(value):
                 if not self.traveling:
                     return
                 self.move_right()
-                sleep(8)
+                sleep(3)
+                if self.traveling:
+                    sleep(5)
                 self.cancel_thread = None
 
     def travel_complete(self):
         if self.traveling:
             self.travel_vertical(self.y_dest - self.y_pos)
             self.travel_horizontal(self.x_dest - self.x_pos)
-            AutoCloseMessageBox("Dofus TravelBot", "Trajet fini", 1)
+            AutoCloseMessageBox("Trajet fini", 1)
             self.travel_stop()
             return
 

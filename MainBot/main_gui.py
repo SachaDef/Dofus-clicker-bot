@@ -4,53 +4,55 @@ from tkinter import *
 class DofusBotInterface(Tk):
     def __init__(self, init=True):
         super().__init__()
-        self.after(1, lambda: self.focus_force())
-        self.init = init
-        self.title("Dofus TravelBot")
-        self.geometry("600x430+480+175")
-        self.minsize(600, 430)
-        self.maxsize(600, 430)
-        self['bg'] = 'white'
-        self.entries = []
+        self.width = 640
+        self.height = 360
         self.data = []
-        self.window = Frame(self, bg="white", highlightbackground="black", highlightthickness=2)
-        self.containers = [Frame(self.window, bg="white") for i in range(2)]
-        self.useless = {
-            0: "X",
-            1: "Y"
-        }
-        for i in range(2):
-            if self.init:
-                label = Label(self.containers[i], text=self.useless[i] + " pos :", font=("Calibri", 24), bg="white",
-                              fg="black")
-                entry = Entry(self.containers[i], bg="black", fg="white", font=("Calibri", 24), width=10)
-                self.entries.append(entry)
-                label.pack(expand=YES)
-                entry.pack(expand=YES)
-            else:
-                label = Label(self.containers[i], text=self.useless[i] + " destination :", font=("Calibri", 24), bg="white",
-                              fg="black")
-                entry = Entry(self.containers[i], bg="black", fg="white", font=("Calibri", 24), width=10)
-                self.entries.append(entry)
-                label.pack(expand=YES)
-                entry.pack(expand=YES)
-        self.entries[0].focus_set()
-        for container in self.containers:
-            container.pack(expand=YES, padx=50, pady=50)
-        self.window.pack(expand=YES)
+        self.init = init
+        self.after(1, lambda: self.focus_force())
+        self.title("DofusBot")
+        self.geometry(f"{self.width}x{self.height}+{int(self.winfo_screenwidth()/2 - self.width/2)}+{int(self.winfo_screenheight()/2 - self.height/2)}")
+        self.minsize(self.width, self.height)
+        self.maxsize(self.width, self.height)
+        self.iconbitmap(r'C:\Users\sacha\Desktop\Dofus Bot\img\icon.ico')
+
+        self.bg_img = PhotoImage(file=r"C:\Users\sacha\Desktop\Dofus Bot\img\bg_img.gif").subsample(4)
+        self.bg_canvas = Canvas(self, width=self.width, height=self.height)
+        self.bg_canvas.create_image(self.width/2, self.height/2, image=self.bg_img)
+
+        if self.init:
+            self.bg_canvas.create_text(190, 140, text="X position", font=("Calibri", 36), fill="black")
+            self.bg_canvas.create_text(450, 140, text="Y position", font=("Calibri", 36), fill="black")
+            self.x_entry = Entry(self.bg_canvas, font=("Calibri", 20), bg="white", width=10, justify="center")
+            self.y_entry = Entry(self.bg_canvas, font=("Calibri", 20), bg="white", width=10, justify="center")
+            self.bg_canvas.create_window(190, 220, window=self.x_entry)
+            self.bg_canvas.create_window(450, 220, window=self.y_entry)
+            self.bg_canvas.pack()
+
+        else:
+            self.bg_canvas.create_text(190, 140, text="X destination", font=("Calibri", 32), fill="black")
+            self.bg_canvas.create_text(450, 140, text="Y destination", font=("Calibri", 32), fill="black")
+            self.x_entry = Entry(self.bg_canvas, font=("Calibri", 20), bg="white", width=10, justify="center")
+            self.y_entry = Entry(self.bg_canvas, font=("Calibri", 20), bg="white", width=10, justify="center")
+            self.bg_canvas.create_window(190, 220, window=self.x_entry)
+            self.bg_canvas.create_window(450, 220, window=self.y_entry)
+            self.bg_canvas.pack()
+
+        self.x_entry.focus_set()
         self.bind("<Return>", lambda event: self.retrieve_data())
         self.bind("<Escape>", lambda event: self.destroy())
 
     def retrieve_data(self):
-        for entry in self.entries:
-            if 1 <= len(entry.get()) <= 4:
-                self.data.append(entry.get())
-            else:
-                self.data = []
-                for new_entry in self.entries:
-                    new_entry.delete(0)
-                break
+        if 1 <= len(self.x_entry.get()) <= 4 and 1 <= len(self.y_entry.get()) <= 4\
+        and self.x_entry.get().replace("-", "").isdigit() and self.y_entry.get().replace("-", "").isdigit():
+            self.data.append(self.x_entry.get())
+            self.data.append(self.y_entry.get())
+        else:
+            del self.data[:]
+            self.x_entry.delete(0, END)
+            self.y_entry.delete(0, END)
+            self.x_entry.focus_set()
+            self.bg_canvas.create_text(320, 300, text="Coordonnées invalides", font=("Calibri", 24), fill="black")
+
         if len(self.data) == 2:
-            self.data = (self.data[0], self.data[1])
             self.destroy()
-            return self.data
+            return self.data[0], self.data[1]
