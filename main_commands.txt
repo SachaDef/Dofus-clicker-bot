@@ -7,5 +7,6 @@ Bot principal:
 - end pour rentrer la destination désirée et lancer le déplacement
 - f1 pour afficher la position du bot, parfois différente de la position réelle si erreur
 - f2 pour lancer l'enregistrement des coordonnées de clics, et f2 à nouveau pour compléter l'enregistrement
-- f3 pour kill le bot
+- f3 pour interrompre déplacement/farm
+- f4 pour kill le bot
 
