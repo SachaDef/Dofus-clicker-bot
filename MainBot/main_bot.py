@@ -60,9 +60,9 @@ class DofusBot:
         self.travel_thread = None
         self.cancel_flag = False
         self.cancel_thread = None
-        self.window_id = find_window("Dofus")[0]
-        self.window_name = find_window("Dofus")[1]
-        self.window_class = find_window("Dofus")[2]
+        self.window_id = find_window("Dofus 2.59")[0]
+        self.window_name = find_window("Dofus 2.59")[1]
+        self.window_class = find_window("Dofus 2.59")[2]
         self.mouse = Controller()
         self.click_coords = []
         self.maps_file = "..\\Maps_Paths\\farming_maps.txt"
@@ -224,7 +224,6 @@ class DofusBot:
         if self.traveling:
             self.travel_vertical(self.y_dest - self.y_pos)
             self.travel_horizontal(self.x_dest - self.x_pos)
-            AutoCloseMessageBox("Trajet fini", 1)
             self.travel_stop()
             return
 
