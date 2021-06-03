@@ -3,7 +3,7 @@ from pynput.mouse import Controller, Button
 from win32gui import GetWindowText, GetForegroundWindow, SetForegroundWindow, SetActiveWindow, BringWindowToTop
 from threading import Thread
 from time import sleep
-from utilities.message_boxes import ConfirmBox, AutoCloseMessageBox
+from utilities.message_boxes import ConfirmBox
 
 
 # ==== ALLOW PARTIAL MATCHES WHILE FINDING WINDOW ==== #
@@ -49,9 +49,10 @@ def to_top(hwnd):
 
 # ==== BOT INITIALIZATION ==== #
 class DofusBot:
-    def __init__(self, x_pos, y_pos):
+    def __init__(self, x_pos, y_pos, char_name):
         self.traveling = False
         self.creating = False
+        self.character_name = char_name
         self.x_pos = x_pos
         self.y_pos = y_pos
         self.x_dest = 0
@@ -60,9 +61,10 @@ class DofusBot:
         self.travel_thread = None
         self.cancel_flag = False
         self.cancel_thread = None
-        self.window_id = find_window("Dofus 2.59")[0]
-        self.window_name = find_window("Dofus 2.59")[1]
-        self.window_class = find_window("Dofus 2.59")[2]
+        self.window_id = find_window(char_name)[0]
+        self.window_name = find_window(char_name)[1]
+        self.window_class = find_window(char_name)[2]
+        self.character_name = self.window_name.split(" - ")[0]
         self.mouse = Controller()
         self.click_coords = []
         self.maps_file = "..\\Maps_Paths\\farming_maps.txt"
