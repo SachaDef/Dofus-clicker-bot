@@ -1,8 +1,8 @@
 # from pynput import mouse as m
 from pynput import keyboard as k
-from MainBot.main_gui import *
-from MainBot.main_bot import *
-from Utilities.utilities_message_boxes import AutoCloseMessageBox
+from main_bot.main_gui import *
+from main_bot.main_bot import *
+from utilities.message_boxes import AutoCloseMessageBox
 
 
 def main():

@@ -3,7 +3,7 @@ from pynput.mouse import Controller, Button
 from win32gui import GetWindowText, GetForegroundWindow, SetForegroundWindow, SetActiveWindow, BringWindowToTop
 from threading import Thread
 from time import sleep
-from Utilities.utilities_message_boxes import ConfirmBox, AutoCloseMessageBox
+from utilities.message_boxes import ConfirmBox, AutoCloseMessageBox
 
 
 # ==== ALLOW PARTIAL MATCHES WHILE FINDING WINDOW ==== #
