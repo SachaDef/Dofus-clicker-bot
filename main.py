@@ -1,14 +1,14 @@
 # from pynput import mouse as m
 from pynput import keyboard as k
-from main_bot.main_gui import *
+from main_bot.main_gui import DofusBotInterface
 from main_bot.main_bot import *
-from utilities.message_boxes import AutoCloseMessageBox
+from utilities.message_boxes import AutoCloseMessageBox, ConfirmBox
 
 
 def main():
 
     def on_press(key):
-        if "Dofus" in GetWindowText(GetForegroundWindow()):
+        if dofus_bot.character_name in GetWindowText(GetForegroundWindow()):
             if key == k.Key.left:
                 dofus_bot.move_left()
             elif key == k.Key.right:
@@ -59,7 +59,7 @@ def main():
                 dofus_bot.creation_stop()
                 AutoCloseMessageBox(dofus_bot.character_name, 'Action interrompue', 1).activate()
         elif key == k.Key.f4:
-            confirm_exit = ConfirmBox()
+            confirm_exit = ConfirmBox(dofus_bot.character_name)
             confirm_exit.mainloop()
             if confirm_exit.value:
                 AutoCloseMessageBox(dofus_bot.character_name, "A la prochaine fois !", 1.5).activate()
@@ -77,7 +77,8 @@ def main():
     if bot_init_gui.data:
         dofus_bot = DofusBot(char_name=bot_init_gui.data[0] ,x_pos=int(bot_init_gui.data[1]), y_pos=int(bot_init_gui.data[2]))
     else:
-        dofus_bot = DofusBot(x_pos=0, y_pos=0)
+        # dofus_bot = DofusBot(char_name=bot_init_gui.data[0], x_pos=0, y_pos=0)
+        exit()
 
     with k.Listener(on_press=on_press) as klistener:
         # with m.Listener(on_click=on_click) as mlistener:

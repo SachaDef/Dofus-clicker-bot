@@ -40,13 +40,14 @@ class AutoCloseMessageBox(Tk):
 
 
 class ConfirmBox(Tk):
-    def __init__(self):
+    def __init__(self, title):
         super().__init__()
         self.width = 400
         self.height = 200
+        self.window_title = title
         self.value = False
         self.after(1, lambda: self.focus_force())
-        self.title("DofusBot")
+        self.title(self.window_title)
         self.geometry(f"{self.width}x{self.height}+{int(self.winfo_screenwidth()/2 - self.width/2)}+{int(self.winfo_screenheight()/2 - self.height/2)}")
         self.minsize(self.width, self.height)
         self.maxsize(self.width, self.height)
@@ -55,7 +56,7 @@ class ConfirmBox(Tk):
         self.bg_img = PhotoImage(file=r'C:\Users\sacha\Desktop\Dofus Bot\img\6dofus.gif').subsample(4)
         self.bg_canvas = Canvas(self, width=self.width, height=self.height, bg="#ffffff")
         self.bg_canvas.create_image(self.width / 2, self.height / 2, image=self.bg_img)
-        self.bg_canvas.create_text(self.width/2, self.height/2, text="Confirmer ? [Return/Esc]", font=("Calibri", 26), fill="black", width=300, justify="center")
+        self.bg_canvas.create_text(self.width/2, self.height/2, text="Confirmer ?", font=("Calibri", 26), fill="black", width=300, justify="center")
         self.bg_canvas.pack()
 
         self.bind("<Return>", lambda event: self.confirm())

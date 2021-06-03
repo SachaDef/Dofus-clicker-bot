@@ -3,7 +3,7 @@ from pynput.mouse import Controller, Button
 from win32gui import GetWindowText, GetForegroundWindow, SetForegroundWindow, SetActiveWindow, BringWindowToTop
 from threading import Thread
 from time import sleep
-from utilities.message_boxes import ConfirmBox
+from utilities.message_boxes import AutoCloseMessageBox, ConfirmBox
 
 
 # ==== ALLOW PARTIAL MATCHES WHILE FINDING WINDOW ==== #
@@ -236,7 +236,7 @@ class DofusBot:
 
 
     def append_map_clicks(self):
-        confirm_append = ConfirmBox()
+        confirm_append = ConfirmBox(self.character_name)
         confirm_append.mainloop()
         if confirm_append.value:
             with open(self.maps_file, 'a') as f:

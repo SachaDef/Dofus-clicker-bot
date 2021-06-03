@@ -1,5 +1,5 @@
 from tkinter import *
-
+from main_bot.main_bot import find_window
 
 class DofusBotInterface(Tk):
     def __init__(self, mode="travel"):
@@ -20,15 +20,15 @@ class DofusBotInterface(Tk):
         self.bg_canvas.create_image(self.width/2, self.height/2, image=self.bg_img)
 
         if self.mode == "init":
-            self.bg_canvas.create_text(320, 100, text="Character name", font=("Calibri", 36), fill="black")
+            self.bg_canvas.create_text(320, 70, text="Character name", font=("Calibri", 36), fill="black")
             self.name_entry = Entry(self.bg_canvas, font=("Calibri", 20), bg="white", width=10, justify="center")
-            self.bg_canvas.create_window(320, 160, window=self.name_entry)
-            self.bg_canvas.create_text(190, 220, text="X position", font=("Calibri", 36), fill="black")
-            self.bg_canvas.create_text(450, 220, text="Y position", font=("Calibri", 36), fill="black")
+            self.bg_canvas.create_window(320, 130, window=self.name_entry)
+            self.bg_canvas.create_text(190, 190, text="X position", font=("Calibri", 36), fill="black")
+            self.bg_canvas.create_text(450, 190, text="Y position", font=("Calibri", 36), fill="black")
             self.x_entry = Entry(self.bg_canvas, font=("Calibri", 20), bg="white", width=10, justify="center")
             self.y_entry = Entry(self.bg_canvas, font=("Calibri", 20), bg="white", width=10, justify="center")
-            self.bg_canvas.create_window(190, 280, window=self.x_entry)
-            self.bg_canvas.create_window(450, 280, window=self.y_entry)
+            self.bg_canvas.create_window(190, 250, window=self.x_entry)
+            self.bg_canvas.create_window(450, 250, window=self.y_entry)
             self.bg_canvas.pack()
             self.name_entry.focus_set()
 
@@ -57,22 +57,41 @@ class DofusBotInterface(Tk):
         self.bind("<Escape>", lambda event: self.destroy())
 
     def retrieve_data(self):
-        if 1 <= len(self.x_entry.get()) <= 4 and 1 <= len(self.y_entry.get()) <= 4\
-        and self.x_entry.get().replace("-", "").isdigit() and self.y_entry.get().replace("-", "").isdigit():
-            if self.mode == "init":
-                self.data.append(self.name_entry.get())
+        if self.mode == "init":
+            if len(self.name_entry.get()) >= 3 and find_window(self.name_entry.get()) != False:
+                if 1 <= len(self.x_entry.get()) <= 4 and 1 <= len(self.y_entry.get()) <= 4\
+                and self.x_entry.get().replace("-", "").isdigit() and self.y_entry.get().replace("-", "").isdigit():
+                    self.data.append(self.name_entry.get())
+                    self.data.append(self.x_entry.get())
+                    self.data.append(self.y_entry.get())
+                else:
+                    del self.data[:]
+                    self.x_entry.delete(0, END)
+                    self.y_entry.delete(0, END)
+                    self.x_entry.focus_set()
+                    temp = self.bg_canvas.create_text(320, 300, text="Coordonnées invalides", font=("Calibri", 24), fill="black")
+                    self.after(2000, lambda: self.bg_canvas.delete(temp))
+            else:
+                del self.data[:]
+                self.name_entry.delete(0, END)
+                self.x_entry.delete(0, END)
+                self.y_entry.delete(0, END)
+                self.name_entry.focus_set()
+                temp = self.bg_canvas.create_text(320, 300, text="Nom de personnage invalide", font=("Calibri", 24), fill="black")
+                self.after(2000, lambda: self.bg_canvas.delete(temp))
+
+        elif self.mode == "update" or self.mode == "travel":
+            if 1 <= len(self.x_entry.get()) <= 4 and 1 <= len(self.y_entry.get()) <= 4\
+            and self.x_entry.get().replace("-", "").isdigit() and self.y_entry.get().replace("-", "").isdigit():
                 self.data.append(self.x_entry.get())
                 self.data.append(self.y_entry.get())
             else:
-                self.data.append(self.x_entry.get())
-                self.data.append(self.y_entry.get())
-        
-        else:
-            del self.data[:]
-            self.x_entry.delete(0, END)
-            self.y_entry.delete(0, END)
-            self.x_entry.focus_set()
-            self.bg_canvas.create_text(320, 300, text="Coordonnées invalides", font=("Calibri", 24), fill="black")
+                del self.data[:]
+                self.x_entry.delete(0, END)
+                self.y_entry.delete(0, END)
+                self.x_entry.focus_set()
+                temp = self.bg_canvas.create_text(320, 280, text="Coordonnées invalides", font=("Calibri", 24), fill="black")
+                self.after(2000, lambda: self.bg_canvas.delete(temp))
 
         if self.mode == "init" and len(self.data) == 3:
             return_value = (self.data[0], self.data[1], self.data[2])
