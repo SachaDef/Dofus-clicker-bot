@@ -107,12 +107,12 @@ class DofusBot:
 
 # ==== CLICKING METHOD ==== #
     def click(self, x, y):
-        sleep(0.07)
+        sleep(0.2)
         prev_coords = self.mouse.position
         self.mouse.position = (round(100/125*x), round(100/125*y))
         self.mouse.click(Button.left)
         self.mouse.position = prev_coords
-        sleep(0.07)
+        sleep(0.2)
 
 # ==== MOVEMENT BY CLICK METHODS ==== #
     def wait_3_sec(self):
@@ -187,6 +187,8 @@ class DofusBot:
                     return
                 self.move_up()
                 sleep(3)
+                if self.x_pos == self.x_dest and self.y_pos == self.y_dest:
+                    AutoCloseMessageBox(self.character_name, "Trajet fini", 1).activate()
                 if self.traveling:
                     sleep(5)
                 self.cancel_thread = None
@@ -196,6 +198,8 @@ class DofusBot:
                     return
                 self.move_down()
                 sleep(3)
+                if self.x_pos == self.x_dest and self.y_pos == self.y_dest:
+                    AutoCloseMessageBox(self.character_name, "Trajet fini", 1).activate()
                 if self.traveling:
                     sleep(5)
                 self.cancel_thread = None
@@ -209,6 +213,8 @@ class DofusBot:
                     return
                 self.move_left()
                 sleep(3)
+                if self.x_pos == self.x_dest and self.y_pos == self.y_dest:
+                    AutoCloseMessageBox(self.character_name, "Trajet fini", 1).activate()
                 if self.traveling:
                     sleep(5)
                 self.cancel_thread = None
@@ -218,6 +224,8 @@ class DofusBot:
                     return
                 self.move_right()
                 sleep(3)
+                if self.x_pos == self.x_dest and self.y_pos == self.y_dest:
+                    AutoCloseMessageBox(self.character_name, "Trajet fini", 1).activate()
                 if self.traveling:
                     sleep(5)
                 self.cancel_thread = None
