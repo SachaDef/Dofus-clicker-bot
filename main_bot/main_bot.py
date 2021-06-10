@@ -109,7 +109,7 @@ class DofusBot:
     def click(self, x, y):
         sleep(0.2)
         prev_coords = self.mouse.position
-        self.mouse.position = (round(100/125*x), round(100/125*y))
+        self.mouse.position = (x, y)
         self.mouse.click(Button.left)
         self.mouse.position = prev_coords
         sleep(0.2)

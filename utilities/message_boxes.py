@@ -9,8 +9,8 @@ class AutoCloseMessageBox(Tk):
         self.window_title = title
         self.text = text
         self.duration = duration
-        self.width = 400
-        self.height = 200
+        self.width = 500
+        self.height = 250
         self.after(1, lambda: self.focus_force())
         self.title(self.window_title)
         self.geometry(f"{self.width}x{self.height}+{int(self.winfo_screenwidth() / 2 - self.width / 2)}+{int(self.winfo_screenheight() / 2 - self.height / 2)}")
@@ -42,8 +42,8 @@ class AutoCloseMessageBox(Tk):
 class ConfirmBox(Tk):
     def __init__(self, title):
         super().__init__()
-        self.width = 400
-        self.height = 200
+        self.width = 500
+        self.height = 250
         self.window_title = title
         self.value = False
         self.after(1, lambda: self.focus_force())
