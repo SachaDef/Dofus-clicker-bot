@@ -4,6 +4,7 @@ from pynput.keyboard import Listener, Key
 
 
 class MapManager:
+    print("test")
     def __init__(self, db_file="maps.db"):
         self.db = db_file
         self.connection = sql.connect(self.db)
