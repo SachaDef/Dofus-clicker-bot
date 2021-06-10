@@ -25,7 +25,7 @@ Clearly not ready yet, fixes and functionalities yet to be implemented.
 - [`main_bot`](main_bot/) folder containing the two python file describing the `DofusBot` class and its GUI, in [`main_bot.py`](main_bot/main_bot.py) and [`main_gui.py`](main_bot/main_gui.py) respectively &rarr; implemented, bug with tkinter not looping in main thread to be fixed
 - [`maps_paths`](maps_paths/) folder containing two databases and their [`db_manager.py`](maps_paths/db_manager.py), to store coordinates of resources and interesting paths for farming in [`maps.db`](maps_paths/maps.db) and [`paths.db`](maps_paths/paths.db) respectively &rarr; not implemented
 - [`utilities`](utilities) folder containing :
-    - [`message_boxes.py`](utilities/message_boxxes.py), graphical helper providing a confirmation pop-up window and a self-destroying pop-up window &rarr; implemented
+    - [`message_boxes.py`](utilities/message_boxes.py), graphical helper providing a confirmation pop-up window and a self-destroying pop-up window &rarr; implemented
 - [`.gitignore`](.gitignore) file
 - [`main_commands.txt`](main_commands.txt) file listing the keys and their interaction upon the bot and/or the GUI
 - [`main.py`](main.py) file creating the bot, listening to keyboard and mouse events, managing the bot in general &rarr; partially implemented
