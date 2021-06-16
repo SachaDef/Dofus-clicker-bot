@@ -188,7 +188,7 @@ class DofusBot:
                 self.move_up()
                 sleep(3)
                 if self.x_pos == self.x_dest and self.y_pos == self.y_dest:
-                    AutoCloseMessageBox(self.character_name, "Trajet fini", 1).activate()
+                    AutoCloseMessageBox(self.character_name, "Trajet fini", 1)
                 if self.traveling:
                     sleep(5)
                 self.cancel_thread = None
@@ -199,7 +199,7 @@ class DofusBot:
                 self.move_down()
                 sleep(3)
                 if self.x_pos == self.x_dest and self.y_pos == self.y_dest:
-                    AutoCloseMessageBox(self.character_name, "Trajet fini", 1).activate()
+                    AutoCloseMessageBox(self.character_name, "Trajet fini", 1)
                 if self.traveling:
                     sleep(5)
                 self.cancel_thread = None
@@ -214,7 +214,7 @@ class DofusBot:
                 self.move_left()
                 sleep(3)
                 if self.x_pos == self.x_dest and self.y_pos == self.y_dest:
-                    AutoCloseMessageBox(self.character_name, "Trajet fini", 1).activate()
+                    AutoCloseMessageBox(self.character_name, "Trajet fini", 1)
                 if self.traveling:
                     sleep(5)
                 self.cancel_thread = None
@@ -225,7 +225,7 @@ class DofusBot:
                 self.move_right()
                 sleep(3)
                 if self.x_pos == self.x_dest and self.y_pos == self.y_dest:
-                    AutoCloseMessageBox(self.character_name, "Trajet fini", 1).activate()
+                    AutoCloseMessageBox(self.character_name, "Trajet fini", 1)
                 if self.traveling:
                     sleep(5)
                 self.cancel_thread = None

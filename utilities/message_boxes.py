@@ -1,4 +1,4 @@
-from tkinter import *
+from mttkinter.mtTkinter import *
 from random import choice
 
 
@@ -24,6 +24,8 @@ class AutoCloseMessageBox(Tk):
               (r'C:\Users\sacha\Desktop\Dofus Bot\img\ebene.gif', "#76694a", 'white'),
               (r'C:\Users\sacha\Desktop\Dofus Bot\img\ivoire.gif', "#e2c18e", 'black'),
               (r'C:\Users\sacha\Desktop\Dofus Bot\img\ocre.gif', "#f7c017", 'black')]
+        
+        self.activate()
 
     def activate(self):
         dofus = choice(self.images)

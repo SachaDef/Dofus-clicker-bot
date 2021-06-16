@@ -36,19 +36,19 @@ def main():
                 y_dest = int(bot_update_gui2.data[1])
                 dofus_bot.set_dest((x_dest, y_dest))
                 dofus_bot.automate_travel()
-                # AutoCloseMessageBox(dofus_bot.character_name, "Trajet fini", 1).activate()
+                # AutoCloseMessageBox(dofus_bot.character_name, "Trajet fini", 1)
             # dofus_bot.travel_stop()
         elif key == k.Key.f1:
-            AutoCloseMessageBox(dofus_bot.character_name, f"X = {dofus_bot.x_pos}    Y = {dofus_bot.y_pos}", 1).activate()
+            AutoCloseMessageBox(dofus_bot.character_name, f"X = {dofus_bot.x_pos}    Y = {dofus_bot.y_pos}", 1)
         elif key == k.Key.f2:
             if not dofus_bot.creating:
-                AutoCloseMessageBox(dofus_bot.character_name, "Enregistrement des clics", 1).activate()
+                AutoCloseMessageBox(dofus_bot.character_name, "Enregistrement des clics", 1)
                 dofus_bot.creation_start()
             else:
                 if dofus_bot.append_map_clicks():
-                    AutoCloseMessageBox(dofus_bot.character_name, 'Coordonnées de clic ajoutées', 1).activate()
+                    AutoCloseMessageBox(dofus_bot.character_name, 'Coordonnées de clic ajoutées', 1)
                 else:
-                    AutoCloseMessageBox(dofus_bot.character_name, 'Coordonnées de clic supprimées', 1).activate()
+                    AutoCloseMessageBox(dofus_bot.character_name, 'Coordonnées de clic supprimées', 1)
                 dofus_bot.creation_stop()
         elif key == k.Key.f3:
             if dofus_bot.creating or dofus_bot.traveling:
@@ -57,12 +57,12 @@ def main():
                 dofus_bot.cancel_flag = False
                 dofus_bot.travel_stop()
                 dofus_bot.creation_stop()
-                AutoCloseMessageBox(dofus_bot.character_name, 'Action interrompue', 1).activate()
+                AutoCloseMessageBox(dofus_bot.character_name, 'Action interrompue', 1)
         elif key == k.Key.f4:
             confirm_exit = ConfirmBox(dofus_bot.character_name)
             confirm_exit.mainloop()
             if confirm_exit.value:
-                AutoCloseMessageBox(dofus_bot.character_name, "A la prochaine fois !", 1.5).activate()
+                AutoCloseMessageBox(dofus_bot.character_name, "A la prochaine fois !", 1.5)
                 dofus_bot.exit()
                 klistener.stop()
                 # mlistener.stop()

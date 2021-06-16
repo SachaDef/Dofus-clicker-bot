@@ -1,4 +1,4 @@
-from tkinter import *
+from mttkinter.mtTkinter import *
 from main_bot.main_bot import find_window
 
 class DofusBotInterface(Tk):
