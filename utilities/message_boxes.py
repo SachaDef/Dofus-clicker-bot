@@ -16,14 +16,14 @@ class AutoCloseMessageBox(Tk):
         self.geometry(f"{self.width}x{self.height}+{int(self.winfo_screenwidth() / 2 - self.width / 2)}+{int(self.winfo_screenheight() / 2 - self.height / 2)}")
         self.minsize(self.width, self.height)
         self.maxsize(self.width, self.height)
-        self.iconbitmap(r'C:\Users\sacha\Desktop\Dofus Bot\img\icon.ico')
+        self.iconbitmap(r'img\icon.ico')
 
-        self.images = [(r'C:\Users\sacha\Desktop\Dofus Bot\img\emeraude.gif', "#8ad31e", 'black'),
-              (r'C:\Users\sacha\Desktop\Dofus Bot\img\pourpre.gif', "#b83206", 'black'),
-              (r'C:\Users\sacha\Desktop\Dofus Bot\img\turquoise.gif', "#188089", 'black'),
-              (r'C:\Users\sacha\Desktop\Dofus Bot\img\ebene.gif', "#76694a", 'white'),
-              (r'C:\Users\sacha\Desktop\Dofus Bot\img\ivoire.gif', "#e2c18e", 'black'),
-              (r'C:\Users\sacha\Desktop\Dofus Bot\img\ocre.gif', "#f7c017", 'black')]
+        self.images = [(r'img\emeraude.gif', "#8ad31e", 'black'),
+              (r'img\pourpre.gif', "#b83206", 'black'),
+              (r'img\turquoise.gif', "#188089", 'black'),
+              (r'img\ebene.gif', "#76694a", 'white'),
+              (r'img\ivoire.gif', "#e2c18e", 'black'),
+              (r'img\ocre.gif', "#f7c017", 'black')]
         
         self.activate()
 
@@ -53,9 +53,9 @@ class ConfirmBox(Tk):
         self.geometry(f"{self.width}x{self.height}+{int(self.winfo_screenwidth()/2 - self.width/2)}+{int(self.winfo_screenheight()/2 - self.height/2)}")
         self.minsize(self.width, self.height)
         self.maxsize(self.width, self.height)
-        self.iconbitmap(r'C:\Users\sacha\Desktop\Dofus Bot\img\icon.ico')
+        self.iconbitmap(r'img\icon.ico')
 
-        self.bg_img = PhotoImage(file=r'C:\Users\sacha\Desktop\Dofus Bot\img\6dofus.gif').subsample(4)
+        self.bg_img = PhotoImage(file=r'img\6dofus.gif').subsample(4)
         self.bg_canvas = Canvas(self, width=self.width, height=self.height, bg="#ffffff")
         self.bg_canvas.create_image(self.width / 2, self.height / 2, image=self.bg_img)
         self.bg_canvas.create_text(self.width/2, self.height/2, text="Confirmer ?", font=("Calibri", 26), fill="black", width=300, justify="center")

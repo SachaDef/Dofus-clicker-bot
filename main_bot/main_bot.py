@@ -35,7 +35,7 @@ def refresh_wins():
 def find_window(title):
     newest_titles = refresh_wins()
     for item in newest_titles:
-        if title in item[1]:
+        if title.lower() in item[1].lower():
             return item
     return False
 

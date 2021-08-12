@@ -13,9 +13,9 @@ class DofusBotInterface(Tk):
         self.geometry(f"{self.width}x{self.height}+{int(self.winfo_screenwidth()/2 - self.width/2)}+{int(self.winfo_screenheight()/2 - self.height/2)}")
         self.minsize(self.width, self.height)
         self.maxsize(self.width, self.height)
-        self.iconbitmap(r'C:\Users\sacha\Desktop\Dofus Bot\img\icon.ico')
+        self.iconbitmap(r'img\icon.ico')
 
-        self.bg_img = PhotoImage(file=r"C:\Users\sacha\Desktop\Dofus Bot\img\bg_img.gif").subsample(3)
+        self.bg_img = PhotoImage(file=r"img\bg_img.gif").subsample(3)
         self.bg_canvas = Canvas(self, width=self.width, height=self.height)
         self.bg_canvas.create_image(self.width/2, self.height/2, image=self.bg_img)
 

@@ -8,7 +8,7 @@ from utilities.message_boxes import AutoCloseMessageBox, ConfirmBox
 def main():
 
     def on_press(key):
-        if dofus_bot.character_name in GetWindowText(GetForegroundWindow()):
+        if dofus_bot.character_name.lower() in GetWindowText(GetForegroundWindow()).lower():
             if key == k.Key.left:
                 dofus_bot.move_left()
             elif key == k.Key.right:
