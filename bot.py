@@ -60,7 +60,7 @@ class DofusBot:
         self.travel_thread = None
         self.cancel_flag = False
         self.cancel_thread = None
-        self.window_id = find_window(char_name)[0]
+        self.window_hwnd = find_window(char_name)[0]
         self.window_name = find_window(char_name)[1]
         self.window_class = find_window(char_name)[2]
         self.character_name = self.window_name.split(" - ")[0]
@@ -75,11 +75,6 @@ class DofusBot:
         self.travel_thread = Thread(target=self.travel_complete)
 
     def travel_stop(self):
-        # if self.travel_thread is not None:
-        #     try:
-        #         self.travel_thread.join()
-        #     except RuntimeError:
-        #         pass
         self.traveling = False
         self.travel_thread = None
 
@@ -124,7 +119,7 @@ class DofusBot:
         prev_window = find_window(GetWindowText(GetForegroundWindow()))
         self.cancel_thread = Thread(target=self.wait_3_sec)
         self.cancel_thread.start()
-        to_top(self.window_id)
+        to_top(self.window_hwnd)
         self.click(1720, 560)
         to_top(prev_window[0])
         self.previous_map = 'r'
@@ -134,7 +129,7 @@ class DofusBot:
         prev_window = find_window(GetWindowText(GetForegroundWindow()))
         self.cancel_thread = Thread(target=self.wait_3_sec)
         self.cancel_thread.start()
-        to_top(self.window_id)
+        to_top(self.window_hwnd)
         self.click(200, 560)
         to_top(prev_window[0])
         self.previous_map = 'l'
@@ -144,7 +139,7 @@ class DofusBot:
         prev_window = find_window(GetWindowText(GetForegroundWindow()))
         self.cancel_thread = Thread(target=self.wait_3_sec)
         self.cancel_thread.start()
-        to_top(self.window_id)
+        to_top(self.window_hwnd)
         self.click(1050, 40)
         to_top(prev_window[0])
         self.previous_map = 'u'
@@ -154,7 +149,7 @@ class DofusBot:
         prev_window = find_window(GetWindowText(GetForegroundWindow()))
         self.cancel_thread = Thread(target=self.wait_3_sec)
         self.cancel_thread.start()
-        to_top(self.window_id)
+        to_top(self.window_hwnd)
         self.click(950, 910)
         to_top(prev_window[0])
         self.previous_map = 'd'
@@ -162,7 +157,7 @@ class DofusBot:
     def reset(self):
         if self.cancel_flag:
             prev_window = find_window(GetWindowText(GetForegroundWindow()))
-            to_top(self.window_id)
+            to_top(self.window_hwnd)
             self.click(960, 480)
             to_top(prev_window[0])
             if self.previous_map == 'u':

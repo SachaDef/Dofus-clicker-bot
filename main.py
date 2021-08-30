@@ -1,4 +1,3 @@
-# from pynput import mouse as m
 from pynput import keyboard as k
 from gui import *
 from bot import *
@@ -35,8 +34,6 @@ def main():
                 y_dest = int(bot_update_gui2.data[1])
                 dofus_bot.set_dest((x_dest, y_dest))
                 dofus_bot.automate_travel()
-                # AutoCloseMessageBox(dofus_bot.character_name, "Trajet fini", 1)
-            # dofus_bot.travel_stop()
         elif key == k.Key.f1:
             AutoCloseMessageBox(dofus_bot.character_name, f"X = {dofus_bot.x_pos}    Y = {dofus_bot.y_pos}", 1)
         elif key == k.Key.f2:
@@ -64,25 +61,18 @@ def main():
                 AutoCloseMessageBox(dofus_bot.character_name, "A la prochaine fois !", 1.5)
                 dofus_bot.exit()
                 klistener.stop()
-                # mlistener.stop()
 
-    # def on_click(x, y, _, pressed):
-    #     if dofus_bot.creating:
-    #         if pressed:
-    #             dofus_bot.click_coords.append((x, y))
 
     bot_init_gui = DofusBotInterface(mode="init")
     bot_init_gui.mainloop()
     if bot_init_gui.data:
         dofus_bot = DofusBot(char_name=bot_init_gui.data[0] ,x_pos=int(bot_init_gui.data[1]), y_pos=int(bot_init_gui.data[2]))
     else:
-        # dofus_bot = DofusBot(char_name=bot_init_gui.data[0], x_pos=0, y_pos=0)
-        exit()
+        exit()        
 
     with k.Listener(on_press=on_press) as klistener:
-        # with m.Listener(on_click=on_click) as mlistener:
-        #     mlistener.join()
         klistener.join()
+        exit()
 
 if __name__ == '__main__':
     main()
