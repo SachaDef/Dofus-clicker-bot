@@ -1,2 +1,0 @@
-Trèfle : 5;10
-Sauge + ortie : 6;20

@@ -1,8 +1,7 @@
 # from pynput import mouse as m
 from pynput import keyboard as k
-from main_bot.main_gui import DofusBotInterface
-from main_bot.main_bot import *
-from utilities.message_boxes import AutoCloseMessageBox, ConfirmBox
+from gui import *
+from bot import *
 
 
 def main():

@@ -141,3 +141,6 @@ cython_debug/
 # Python package files
 */__init__.py
 __init__.py
+
+# Personal temp file
+test.py
