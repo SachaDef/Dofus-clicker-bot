@@ -1,9 +1,11 @@
 from ctypes import *
-from pynput.mouse import Controller, Button
-from win32gui import GetWindowText, GetForegroundWindow, SetForegroundWindow, SetActiveWindow, BringWindowToTop
+from win32gui import GetWindowText, GetForegroundWindow, SetForegroundWindow, SetActiveWindow, BringWindowToTop, PostMessage
+from win32api import MAKELONG
+from win32con import WM_LBUTTONDOWN, WM_LBUTTONUP, MK_LBUTTON
 from threading import Thread
 from time import sleep
 import gui
+import gc
 
 # ==== ALLOW PARTIAL MATCHES WHILE FINDING WINDOW ==== #
 EnumWindows = windll.user32.EnumWindows
@@ -39,13 +41,6 @@ def find_window(title):
     return False
 
 
-# ==== BRING WINDOW TO TOP ==== #
-def to_top(hwnd):
-    SetActiveWindow(hwnd)
-    SetForegroundWindow(hwnd)
-    BringWindowToTop(hwnd)
-
-
 # ==== BOT INITIALIZATION ==== #
 class DofusBot:
     def __init__(self, x_pos, y_pos, char_name):
@@ -64,7 +59,6 @@ class DofusBot:
         self.window_name = find_window(char_name)[1]
         self.window_class = find_window(char_name)[2]
         self.character_name = self.window_name.split(" - ")[0]
-        self.mouse = Controller()
         self.click_coords = []
         self.maps_file = "..\\Maps_Paths\\farming_maps.txt"
 
@@ -101,74 +95,68 @@ class DofusBot:
 
 # ==== CLICKING METHOD ==== #
     def click(self, x, y):
-        sleep(0.2)
-        prev_coords = self.mouse.position
-        self.mouse.position = (int(x/1.25), int(y/1.25))
-        self.mouse.click(Button.left)
-        self.mouse.position = prev_coords
-        sleep(0.2)
+        lParam = MAKELONG(x, y)
+        PostMessage(self.window_hwnd, WM_LBUTTONDOWN, MK_LBUTTON, lParam)
+        PostMessage(self.window_hwnd, WM_LBUTTONUP, MK_LBUTTON, lParam)
 
 # ==== MOVEMENT BY CLICK METHODS ==== #
+    def wrong_movement_modif(self):
+        if self.previous_map == 'u':
+            self.y_pos += 1
+        if self.previous_map == 'd':
+            self.y_pos -= 1
+        if self.previous_map == 'l':
+            self.x_pos += 1
+        if self.previous_map == 'r':
+            self.x_pos -= 1
+        self.previous_map = None
+
+
     def wait_3_sec(self):
         self.cancel_flag = True
         sleep(3)
         self.cancel_flag = False
 
     def move_right(self):
+        if self.cancel_flag and self.previous_map != 'r':
+            self.wrong_movement_modif()
         self.x_pos += 1
-        prev_window = find_window(GetWindowText(GetForegroundWindow()))
         self.cancel_thread = Thread(target=self.wait_3_sec)
         self.cancel_thread.start()
-        to_top(self.window_hwnd)
-        self.click(1720, 560)
-        to_top(prev_window[0])
+        self.click(1400, 430)
         self.previous_map = 'r'
 
     def move_left(self):
+        if self.cancel_flag and self.previous_map != 'l':
+            self.wrong_movement_modif()
         self.x_pos -= 1
-        prev_window = find_window(GetWindowText(GetForegroundWindow()))
         self.cancel_thread = Thread(target=self.wait_3_sec)
         self.cancel_thread.start()
-        to_top(self.window_hwnd)
-        self.click(200, 560)
-        to_top(prev_window[0])
+        self.click(150, 430)
         self.previous_map = 'l'
 
     def move_up(self):
+        if self.cancel_flag and self.previous_map != 'u':
+            self.wrong_movement_modif()
         self.y_pos -= 1
-        prev_window = find_window(GetWindowText(GetForegroundWindow()))
         self.cancel_thread = Thread(target=self.wait_3_sec)
         self.cancel_thread.start()
-        to_top(self.window_hwnd)
-        self.click(1050, 40)
-        to_top(prev_window[0])
+        self.click(750, 10)
         self.previous_map = 'u'
 
     def move_down(self):
+        if self.cancel_flag and self.previous_map != 'd':
+            self.wrong_movement_modif()
         self.y_pos += 1
-        prev_window = find_window(GetWindowText(GetForegroundWindow()))
         self.cancel_thread = Thread(target=self.wait_3_sec)
         self.cancel_thread.start()
-        to_top(self.window_hwnd)
-        self.click(950, 910)
-        to_top(prev_window[0])
+        self.click(800, 710)
         self.previous_map = 'd'
 
     def reset(self):
         if self.cancel_flag:
-            prev_window = find_window(GetWindowText(GetForegroundWindow()))
-            to_top(self.window_hwnd)
-            self.click(960, 480)
-            to_top(prev_window[0])
-            if self.previous_map == 'u':
-                self.y_pos += 1
-            if self.previous_map == 'd':
-                self.y_pos -= 1
-            if self.previous_map == 'l':
-                self.x_pos += 1
-            if self.previous_map == 'r':
-                self.x_pos -= 1
-            self.previous_map = None
+            self.wrong_movement_modif()
+            self.click(960, 480)            
             self.travel_stop()
 
 # ==== MOVEMENT AUTOMATION METHODS ==== #
@@ -234,7 +222,6 @@ class DofusBot:
     def automate_travel(self):
         if self.travel_thread is not None:
             self.travel_thread.start()
-        # self.travel_stop()
 
 
     def append_map_clicks(self):

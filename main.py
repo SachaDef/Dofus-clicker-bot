@@ -1,6 +1,7 @@
 from pynput import keyboard as k
 from gui import *
 from bot import *
+import gc
 
 
 def main():
