@@ -1,9 +1,7 @@
-from mttkinter.mtTkinter import *
+from tkinter import *
 from PIL import Image, ImageTk
-from svglib.svglib import svg2rlg
-from reportlab.graphics import renderPDF, renderPM
 from random import choice
-import bot
+import bot as b
 
 
 # ===== Helper/secondary interface/tkinter classes ===== #
@@ -164,7 +162,7 @@ class DofusBotInterface(Tk):
 
     def retrieve_data(self):
         if self.mode == "init":
-            if len(self.name_entry.get()) >= 3 and bot.find_window(self.name_entry.get()) != False:
+            if len(self.name_entry.get()) >= 3 and b.find_window(self.name_entry.get()) != False:
                 if 1 <= len(self.x_entry.get()) <= 4 and 1 <= len(self.y_entry.get()) <= 4\
                 and self.x_entry.get().replace("-", "").isdigit() and self.y_entry.get().replace("-", "").isdigit():
                     self.data.append(self.name_entry.get())

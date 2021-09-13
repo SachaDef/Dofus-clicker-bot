@@ -1,11 +1,10 @@
 from ctypes import *
-from win32gui import GetWindowText, GetForegroundWindow, SetForegroundWindow, SetActiveWindow, BringWindowToTop, PostMessage
+from win32gui import PostMessage
 from win32api import MAKELONG
 from win32con import WM_LBUTTONDOWN, WM_LBUTTONUP, MK_LBUTTON
 from threading import Thread
 from time import sleep
-import gui
-import gc
+import globals as gl
 
 # ==== ALLOW PARTIAL MATCHES WHILE FINDING WINDOW ==== #
 EnumWindows = windll.user32.EnumWindows
@@ -97,6 +96,7 @@ class DofusBot:
     def click(self, x, y):
         lParam = MAKELONG(x, y)
         PostMessage(self.window_hwnd, WM_LBUTTONDOWN, MK_LBUTTON, lParam)
+        sleep(0.05)
         PostMessage(self.window_hwnd, WM_LBUTTONUP, MK_LBUTTON, lParam)
 
 # ==== MOVEMENT BY CLICK METHODS ==== #
@@ -170,7 +170,8 @@ class DofusBot:
                 self.move_up()
                 sleep(3)
                 if self.x_pos == self.x_dest and self.y_pos == self.y_dest:
-                    gui.AutoCloseMessageBox(self.character_name, "Trajet fini", 1)
+                    gl.popQ.MyPut("endTr")
+                    gl.popQ.open = False
                 if self.traveling:
                     sleep(5)
                 self.cancel_thread = None
@@ -181,7 +182,8 @@ class DofusBot:
                 self.move_down()
                 sleep(3)
                 if self.x_pos == self.x_dest and self.y_pos == self.y_dest:
-                    gui.AutoCloseMessageBox(self.character_name, "Trajet fini", 1)
+                    gl.popQ.MyPut("endTr")
+                    gl.popQ.open = False
                 if self.traveling:
                     sleep(5)
                 self.cancel_thread = None
@@ -196,7 +198,8 @@ class DofusBot:
                 self.move_left()
                 sleep(3)
                 if self.x_pos == self.x_dest and self.y_pos == self.y_dest:
-                    gui.AutoCloseMessageBox(self.character_name, "Trajet fini", 1)
+                    gl.popQ.MyPut("endTr")
+                    gl.popQ.open = False
                 if self.traveling:
                     sleep(5)
                 self.cancel_thread = None
@@ -207,7 +210,8 @@ class DofusBot:
                 self.move_right()
                 sleep(3)
                 if self.x_pos == self.x_dest and self.y_pos == self.y_dest:
-                    gui.AutoCloseMessageBox(self.character_name, "Trajet fini", 1)
+                    gl.popQ.MyPut("endTr")
+                    gl.popQ.open = False
                 if self.traveling:
                     sleep(5)
                 self.cancel_thread = None
@@ -222,14 +226,3 @@ class DofusBot:
     def automate_travel(self):
         if self.travel_thread is not None:
             self.travel_thread.start()
-
-
-    def append_map_clicks(self):
-        confirm_append = gui.ConfirmBox(self.character_name)
-        confirm_append.mainloop()
-        if confirm_append.value:
-            with open(self.maps_file, 'a') as f:
-                to_append = str((self.x_pos, self.y_pos)) + " : " + str(self.click_coords) + "\n"
-                f.write(to_append)
-        self.click_coords = []
-        return confirm_append.value
