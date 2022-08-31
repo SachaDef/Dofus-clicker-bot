@@ -1,10 +1,12 @@
 from ctypes import *
 from win32gui import PostMessage
-from win32api import MAKELONG
+from win32api import MAKELONG, SetCursorPos
 from win32con import WM_LBUTTONDOWN, WM_LBUTTONUP, MK_LBUTTON
+from pynput import mouse as m, keyboard as k
 from threading import Thread
 from time import sleep
 import globals as gl
+import pyautogui as pag
 
 # ==== ALLOW PARTIAL MATCHES WHILE FINDING WINDOW ==== #
 EnumWindows = windll.user32.EnumWindows
@@ -45,6 +47,7 @@ class DofusBot:
     def __init__(self, x_pos, y_pos, char_name):
         self.traveling = False
         self.creating = False
+        self.farming = False
         self.character_name = char_name
         self.x_pos = x_pos
         self.y_pos = y_pos
@@ -52,14 +55,15 @@ class DofusBot:
         self.y_dest = 0
         self.previous_map = None
         self.travel_thread = None
-        self.cancel_flag = False
+        self.farm_thread = None
         self.cancel_thread = None
+        self.cancel_flag = False
         self.window_hwnd = find_window(char_name)[0]
         self.window_name = find_window(char_name)[1]
         self.window_class = find_window(char_name)[2]
         self.character_name = self.window_name.split(" - ")[0]
-        self.click_coords = []
-        self.maps_file = "..\\Maps_Paths\\farming_maps.txt"
+        self.click_coords = ""
+        self.maps_file = r"data\maps.txt"
 
 
 # ==== START/STOP METHODS ==== #
@@ -73,9 +77,19 @@ class DofusBot:
 
     def creation_start(self):
         self.creating = True
+        self.click_listener()
 
     def creation_stop(self):
         self.creating = False
+
+    def farming_start(self):
+        self.farming = True
+        self.farm_thread = Thread(target=self.farm_map)
+        self.farm_thread.start()
+
+    def farming_stop(self):
+        self.farming = False
+        self.farm_thread = None
 
     def exit(self):
         self.travel_stop()
@@ -94,7 +108,7 @@ class DofusBot:
 
 # ==== CLICKING METHOD ==== #
     def click(self, x, y):
-        lParam = MAKELONG(x, y)
+        lParam = MAKELONG(x, y-28)
         PostMessage(self.window_hwnd, WM_LBUTTONDOWN, MK_LBUTTON, lParam)
         sleep(0.05)
         PostMessage(self.window_hwnd, WM_LBUTTONUP, MK_LBUTTON, lParam)
@@ -123,7 +137,7 @@ class DofusBot:
         self.x_pos += 1
         self.cancel_thread = Thread(target=self.wait_3_sec)
         self.cancel_thread.start()
-        self.click(1400, 430)
+        self.click(1650, 410)
         self.previous_map = 'r'
 
     def move_left(self):
@@ -132,7 +146,7 @@ class DofusBot:
         self.x_pos -= 1
         self.cancel_thread = Thread(target=self.wait_3_sec)
         self.cancel_thread.start()
-        self.click(150, 430)
+        self.click(300, 530)
         self.previous_map = 'l'
 
     def move_up(self):
@@ -141,7 +155,7 @@ class DofusBot:
         self.y_pos -= 1
         self.cancel_thread = Thread(target=self.wait_3_sec)
         self.cancel_thread.start()
-        self.click(750, 10)
+        self.click(1020, 40)
         self.previous_map = 'u'
 
     def move_down(self):
@@ -150,13 +164,13 @@ class DofusBot:
         self.y_pos += 1
         self.cancel_thread = Thread(target=self.wait_3_sec)
         self.cancel_thread.start()
-        self.click(800, 710)
+        self.click(900, 900)
         self.previous_map = 'd'
 
     def reset(self):
         if self.cancel_flag:
             self.wrong_movement_modif()
-            self.click(960, 480)            
+            self.click(960, 470)
             self.travel_stop()
 
 # ==== MOVEMENT AUTOMATION METHODS ==== #
@@ -226,3 +240,45 @@ class DofusBot:
     def automate_travel(self):
         if self.travel_thread is not None:
             self.travel_thread.start()
+
+# ==== MAP CREATION METHODS ==== #
+    def click_listener(self):
+
+        def on_click(x, y, _, pressed):
+            if self.creating:
+                if pressed:
+                    x, y = int(x), int(y)
+                    self.click_coords += f"({x},{y});"
+            else:
+                return False
+
+        def on_move(x, y):
+            if not self.creating:
+                return False
+        listener =  m.Listener(on_click=on_click, on_move=on_move)
+        listener.start()
+
+# ==== AUTOMATE FARMING METHODS ==== #
+    def farm_map(self):
+        flag = False
+        kb = k.Controller()
+        with open(self.maps_file) as f:
+            for line in f.readlines():
+                map, coords = line.split(":")
+                if map == str((self.x_pos, self.y_pos)):
+                    flag = True
+                    coords = coords.split(";")[:-1]
+                    # kb.press(k.Key.shift)
+                    pag.keyDown("shift")
+                    pag.KEYBOARD_KEYS
+                    for coord in coords:
+                        x, y = int(coord.split(",")[0][1:]), int(coord.split(",")[1][:-1])
+                        self.click(x, y)
+                        sleep(0.1)
+                    # kb.release(k.Key.shift)
+                    pag.keyUp("shift")
+                    break
+                else:
+                    continue
+            if not flag:
+                gl.popQ.MyPut("noMap")

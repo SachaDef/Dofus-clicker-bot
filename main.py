@@ -1,4 +1,4 @@
-from pynput import keyboard as k
+from pynput import keyboard as k, mouse as m
 import globals as gl
 import bot as b
 import gui as g
@@ -35,17 +35,17 @@ def main():
                 dofus_bot.creation_start()
             
             elif msg == "stopRec":
+                dofus_bot.creation_stop()                
                 confirm_append = g.ConfirmBox(dofus_bot.character_name)
                 confirm_append.mainloop()
                 if confirm_append.value:
                     with open(dofus_bot.maps_file, 'a') as f:
-                        to_append = str((dofus_bot.x_pos, dofus_bot.y_pos)) + " : " + str(dofus_bot.click_coords) + "\n"
+                        to_append = str((dofus_bot.x_pos, dofus_bot.y_pos)) + ":" + dofus_bot.click_coords + "\n"
                         f.write(to_append)
                     g.AutoCloseMessageBox(dofus_bot.character_name, 'Coordonnées de clic ajoutées', 1)
                 else:
                     g.AutoCloseMessageBox(dofus_bot.character_name, 'Coordonnées de clic supprimées', 1)
-                dofus_bot.click_coords = []                    
-                dofus_bot.creation_stop()                
+                dofus_bot.click_coords = ""
 
             elif msg == "interrup":
                 g.AutoCloseMessageBox(dofus_bot.character_name, 'Action interrompue', 1)
@@ -61,6 +61,9 @@ def main():
             
             elif msg == "endTr":
                 g.AutoCloseMessageBox(dofus_bot.character_name, "Trajet fini", 1)
+
+            elif msg == "noMap":
+                g.AutoCloseMessageBox(dofus_bot.character_name, "Map non répertoriée", 1)
 
             gl.popQ.open = True
 
@@ -96,16 +99,22 @@ def main():
                 gl.popQ.MyPut("stopRec")
                 gl.popQ.open = False
         elif key == k.Key.f3:
-            if dofus_bot.creating or dofus_bot.traveling:
+            dofus_bot.farming_start()
+        elif key == k.Key.f4:
+            if dofus_bot.creating or dofus_bot.traveling or dofus_bot.farming:
                 dofus_bot.cancel_flag = True
                 dofus_bot.reset()
                 dofus_bot.cancel_flag = False
                 dofus_bot.travel_stop()
                 dofus_bot.creation_stop()
+                dofus_bot.farming_stop()
                 gl.popQ.MyPut("interrup")
                 gl.popQ.open = False
-        elif key == k.Key.f4:
+        elif key == k.Key.f5:
             gl.popQ.MyPut("askQuit")
+            gl.popQ.open = False
+        elif key==k.Key.f6:
+            gl.popQ.MyPut("cmd")
             gl.popQ.open = False
 
 

@@ -13,9 +13,10 @@ class AutoCloseMessageBox(Tk):
         self.window_title = title
         self.text = text
         self.duration = duration
-        self.width = 400
-        self.height = 200
+        self.width = 550
+        self.height = 300
         self.after(1, lambda: self.focus_force())
+        self.attributes("-topmost", True)
         self.title(self.window_title)
         self.geometry(f"{self.width}x{self.height}+{int(self.winfo_screenwidth()/2 - self.width/2)}+{int(self.winfo_screenheight()/2 - self.height/2)}")
         self.minsize(self.width, self.height)
@@ -36,7 +37,7 @@ class AutoCloseMessageBox(Tk):
         self.bg_img = PhotoImage(file=dofus[0])
         self.bg_canvas = Canvas(self, width=self.width, height=self.height, bg=dofus[1])
         self.bg_canvas.create_image(int(self.width/2), int(self.height/2), image=self.bg_img)
-        self.bg_canvas.create_text(int(self.width/2), int(self.height/2), text=self.text, font=("Calibri", int(self.width/15)), fill=dofus[2], width=int(self.width/1.3), justify="center")
+        self.bg_canvas.create_text(int(self.width/2), int(self.height/2), text=self.text, font=("Calibri", int(self.width/18)), fill=dofus[2], width=int(self.width/1.3), justify="center")
         self.bg_canvas.pack()
         self.bg_canvas.focus_set()
         self.bind("<Escape>", lambda event: self.destroy())
@@ -48,8 +49,8 @@ class AutoCloseMessageBox(Tk):
 class ConfirmBox(Tk):
     def __init__(self, title):
         super().__init__()
-        self.width = 400
-        self.height = 200
+        self.width = 550
+        self.height = 300
         self.window_title = title
         self.value = False
         self.after(1, lambda: self.focus_force())
@@ -62,7 +63,7 @@ class ConfirmBox(Tk):
         self.bg_img = PhotoImage(file=r'img\6dofus.gif').subsample(4)
         self.bg_canvas = Canvas(self, width=self.width, height=self.height, bg="#ffffff")
         self.bg_canvas.create_image(self.width/2, self.height/2, image=self.bg_img)
-        self.bg_canvas.create_text(self.width/2, self.height/2, text="Confirmer ?", font=("Calibri", int(self.width/15)), fill="black", width=int(self.width/1.3), justify="center")
+        self.bg_canvas.create_text(self.width/2, self.height/2, text="Confirmer ?", font=("Calibri", int(self.width/18)), fill="black", width=int(self.width/1.3), justify="center")
         self.bg_canvas.pack()
 
         self.bind("<Return>", lambda event: self.confirm())
@@ -104,8 +105,8 @@ class DofusBotInterface(Tk):
 
     def __init__(self, mode="travel"):
         super().__init__()
-        self.width = 640
-        self.height = 360
+        self.width = 960
+        self.height = 540
         self.data = []
         self.mode = mode
         self.after(1, lambda: self.focus_force())
@@ -205,3 +206,26 @@ class DofusBotInterface(Tk):
             return_value = (self.data[0], self.data[1])
             self.destroy()
             return return_value
+
+class CommandBox(Tk):
+    def __init__(self, title):
+        super().__init__()
+        self.width = 550
+        self.height = 300
+        self.window_title = title
+        self.value = False
+        self.after(1, lambda: self.focus_force())
+        self.title(self.window_title)
+        self.geometry(f"{self.width}x{self.height}+{int(self.winfo_screenwidth()/2 - self.width/2)}+{int(self.winfo_screenheight()/2 - self.height/2)}")
+        self.minsize(self.width, self.height)
+        self.maxsize(self.width, self.height)
+        self.iconbitmap(r'img\icon.ico')
+
+        self.bg_img = PhotoImage(file=r'img\6dofus.gif').subsample(4)
+        self.bg_canvas = Canvas(self, width=self.width, height=self.height, bg="#ffffff")
+        self.bg_canvas.create_image(self.width/2, self.height/2, image=self.bg_img)
+        self.bg_canvas.create_text(self.width/2, self.height/2, text="Confirmer ?", font=("Calibri", int(self.width/15)), fill="black", width=int(self.width/1.3), justify="center")
+        self.bg_canvas.pack()
+
+        self.bind("<Return>", lambda event: self.confirm())
+        self.bind("<Escape>", lambda event: self.infirm())
