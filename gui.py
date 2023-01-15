@@ -78,6 +78,40 @@ class ConfirmBox(Tk):
         self.destroy()
 
 
+class EntryBox(Tk):
+    def __init__(self, title):
+        super().__init__()
+        self.width = 550
+        self.height = 300
+        self.window_title = title
+        self.value = ""
+        self.after(1, lambda: self.focus_force())
+        self.title(self.window_title)
+        self.geometry(f"{self.width}x{self.height}+{int(self.winfo_screenwidth()/2 - self.width/2)}+{int(self.winfo_screenheight()/2 - self.height/2)}")
+        self.minsize(self.width, self.height)
+        self.maxsize(self.width, self.height)
+        self.iconbitmap(r'img\icon.ico')
+
+        self.bg_img = PhotoImage(file=r'img\6dofus.gif').subsample(4)
+        self.bg_canvas = Canvas(self, width=self.width, height=self.height, bg="#ffffff")
+        self.bg_canvas.create_image(self.width/2, self.height/2, image=self.bg_img)
+        self.bg_canvas.create_text(self.width/2, self.height/3, text="Valeur :", font=("Calibri", int(self.width/18)), fill="black", width=int(self.width/1.3), justify="center")
+        self.value_entry = Entry(self.bg_canvas, font=("Calibri", int(self.width/30)), bg="white", width=int(self.width/30), justify="center")
+        self.bg_canvas.create_window(self.width/2, 2*self.height/3, window=self.value_entry)
+        self.bg_canvas.pack()
+
+        self.bind("<Return>", lambda event: self.confirm())
+        self.bind("<Escape>", lambda event: self.infirm())
+
+    def confirm(self):
+        self.value = self.value_entry.get()
+        self.destroy()
+
+    def infirm(self):
+        self.value = ""
+        self.destroy()
+
+
 class ResizingCanvas(Canvas):   # Not used right now, but still useful code (https://stackoverflow.com/questions/22835289/how-to-get-tkinter-canvas-to-dynamically-resize-to-window-width/22835732)
 
     def __init__(self,parent, **kwargs):
@@ -125,33 +159,33 @@ class DofusBotInterface(Tk):
         self.bg_canvas.create_image(int(self.width/2), int(self.height/2), image=self.bg_img)
 
         if self.mode == "init":
-            self.bg_canvas.create_text(int(self.width/2), int(self.height/5), text="Character name", font=("Calibri", int(self.width/20)), fill="black")
-            self.name_entry = Entry(self.bg_canvas, font=("Calibri", int(self.width/32)), bg="white", width=int(self.width/64), justify="center")
+            self.bg_canvas.create_text(int(self.width/2), int(self.height/5), text="Character name", font=("Calibri", int(self.width/30)), fill="black")
+            self.name_entry = Entry(self.bg_canvas, font=("Calibri", int(self.width/40)), bg="white", width=int(self.width/64), justify="center")
             self.bg_canvas.create_window(int(self.width/2), int(self.height/3), window=self.name_entry)
-            self.bg_canvas.create_text(int(self.width/3.36), int(self.height/1.89), text="X position", font=("Calibri", int(self.width/20)), fill="black")
-            self.bg_canvas.create_text(int(self.width/1.42), int(self.height/1.89), text="Y position", font=("Calibri", int(self.width/20)), fill="black")
-            self.x_entry = Entry(self.bg_canvas, font=("Calibri", int(self.width/32)), bg="white", width=int(self.width/64), justify="center")
-            self.y_entry = Entry(self.bg_canvas, font=("Calibri", int(self.width/32)), bg="white", width=int(self.width/64), justify="center")
+            self.bg_canvas.create_text(int(self.width/3.36), int(self.height/1.89), text="X position", font=("Calibri", int(self.width/30)), fill="black")
+            self.bg_canvas.create_text(int(self.width/1.42), int(self.height/1.89), text="Y position", font=("Calibri", int(self.width/30)), fill="black")
+            self.x_entry = Entry(self.bg_canvas, font=("Calibri", int(self.width/40)), bg="white", width=int(self.width/100), justify="center")
+            self.y_entry = Entry(self.bg_canvas, font=("Calibri", int(self.width/40)), bg="white", width=int(self.width/100), justify="center")
             self.bg_canvas.create_window(int(self.width/3.36), int(self.height/1.44), window=self.x_entry)
             self.bg_canvas.create_window(int(self.width/1.42), int(self.height/1.44), window=self.y_entry)
             self.bg_canvas.pack()
             self.name_entry.focus_set()
 
         elif self.mode == "travel":
-            self.bg_canvas.create_text(int(self.width/3.36), int(self.height/2.57), text="X destination", font=("Calibri", int(self.width/20)), fill="black")
-            self.bg_canvas.create_text(int(self.width/1.42), int(self.height/2.57), text="Y destination", font=("Calibri", int(self.width/20)), fill="black")
-            self.x_entry = Entry(self.bg_canvas, font=("Calibri", int(self.width/32)), bg="white", width=int(self.width/64), justify="center")
-            self.y_entry = Entry(self.bg_canvas, font=("Calibri", int(self.width/32)), bg="white", width=int(self.width/64), justify="center")
+            self.bg_canvas.create_text(int(self.width/3.36), int(self.height/2.57), text="X destination", font=("Calibri", int(self.width/40)), fill="black")
+            self.bg_canvas.create_text(int(self.width/1.42), int(self.height/2.57), text="Y destination", font=("Calibri", int(self.width/40)), fill="black")
+            self.x_entry = Entry(self.bg_canvas, font=("Calibri", int(self.width/32)), bg="white", width=int(self.width/100), justify="center")
+            self.y_entry = Entry(self.bg_canvas, font=("Calibri", int(self.width/32)), bg="white", width=int(self.width/100), justify="center")
             self.bg_canvas.create_window(int(self.width/3.36), int(self.height/1.63), window=self.x_entry)
             self.bg_canvas.create_window(int(self.width/1.42), int(self.height/1.63), window=self.y_entry)
             self.bg_canvas.pack()
             self.x_entry.focus_set()
 
         elif self.mode == "update":
-            self.bg_canvas.create_text(int(self.width/3.36), int(self.height/2.57), text="X position", font=("Calibri", int(self.width/20)), fill="black")
-            self.bg_canvas.create_text(int(self.width/1.42), int(self.height/2.57), text="Y position", font=("Calibri", int(self.width/20)), fill="black")
-            self.x_entry = Entry(self.bg_canvas, font=("Calibri", int(self.width/32)), bg="white", width=int(self.width/64), justify="center")
-            self.y_entry = Entry(self.bg_canvas, font=("Calibri", int(self.width/32)), bg="white", width=int(self.width/64), justify="center")
+            self.bg_canvas.create_text(int(self.width/3.36), int(self.height/2.57), text="X position", font=("Calibri", int(self.width/40)), fill="black")
+            self.bg_canvas.create_text(int(self.width/1.42), int(self.height/2.57), text="Y position", font=("Calibri", int(self.width/40)), fill="black")
+            self.x_entry = Entry(self.bg_canvas, font=("Calibri", int(self.width/32)), bg="white", width=int(self.width/100), justify="center")
+            self.y_entry = Entry(self.bg_canvas, font=("Calibri", int(self.width/32)), bg="white", width=int(self.width/100), justify="center")
             self.bg_canvas.create_window(int(self.width/3.36), int(self.height/1.63), window=self.x_entry)
             self.bg_canvas.create_window(int(self.width/1.42), int(self.height/1.63), window=self.y_entry)
             self.bg_canvas.pack()

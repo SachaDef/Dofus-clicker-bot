@@ -42,12 +42,17 @@ def find_window(title):
     return False
 
 
+# ==== MAKE PYNPUT CONTROLLER AND LISTENER USE SAME COORDINATES ==== #
+windll.shcore.SetProcessDpiAwareness(2)
+
+
 # ==== BOT INITIALIZATION ==== #
 class DofusBot:
     def __init__(self, x_pos, y_pos, char_name):
         self.traveling = False
         self.creating = False
-        self.farming = False
+        self.mapfarming = False
+        self.pathfarming = False
         self.character_name = char_name
         self.x_pos = x_pos
         self.y_pos = y_pos
@@ -55,7 +60,8 @@ class DofusBot:
         self.y_dest = 0
         self.previous_map = None
         self.travel_thread = None
-        self.farm_thread = None
+        self.mapfarm_thread = None
+        self.pathfarm_thread = None
         self.cancel_thread = None
         self.cancel_flag = False
         self.window_hwnd = find_window(char_name)[0]
@@ -70,6 +76,7 @@ class DofusBot:
     def travel_start(self):
         self.traveling = True
         self.travel_thread = Thread(target=self.travel_complete)
+        self.travel_thread.start()
 
     def travel_stop(self):
         self.traveling = False
@@ -82,14 +89,23 @@ class DofusBot:
     def creation_stop(self):
         self.creating = False
 
-    def farming_start(self):
-        self.farming = True
-        self.farm_thread = Thread(target=self.farm_map)
-        self.farm_thread.start()
+    def mapfarming_start(self):
+        self.mapfarming = True
+        self.mapfarm_thread = Thread(target=self.farm_map)
+        self.mapfarm_thread.start()
 
-    def farming_stop(self):
-        self.farming = False
-        self.farm_thread = None
+    def mapfarming_stop(self):
+        self.mapfarming = False
+        self.mapfarm_thread = None
+
+    def pathfarming_start(self, arg):
+        self.pathfarming = True
+        self.pathfarm_thread = Thread(target=self.farm_path, args=(arg,))
+        self.pathfarm_thread.start()
+
+    def pathfarming_stop(self):
+        self.pathfarming = False
+        self.pathfarm_thread = None
 
     def exit(self):
         self.travel_stop()
@@ -237,10 +253,6 @@ class DofusBot:
             self.travel_stop()
             return
 
-    def automate_travel(self):
-        if self.travel_thread is not None:
-            self.travel_thread.start()
-
 # ==== MAP CREATION METHODS ==== #
     def click_listener(self):
 
@@ -261,24 +273,39 @@ class DofusBot:
 # ==== AUTOMATE FARMING METHODS ==== #
     def farm_map(self):
         flag = False
-        kb = k.Controller()
-        with open(self.maps_file) as f:
+        with open(self.maps_file, "r") as f:
             for line in f.readlines():
                 map, coords = line.split(":")
                 if map == str((self.x_pos, self.y_pos)):
                     flag = True
                     coords = coords.split(";")[:-1]
-                    # kb.press(k.Key.shift)
                     pag.keyDown("shift")
-                    pag.KEYBOARD_KEYS
                     for coord in coords:
                         x, y = int(coord.split(",")[0][1:]), int(coord.split(",")[1][:-1])
                         self.click(x, y)
                         sleep(0.1)
-                    # kb.release(k.Key.shift)
                     pag.keyUp("shift")
                     break
                 else:
                     continue
             if not flag:
                 gl.popQ.MyPut("noMap")
+        return len(coords)
+        
+    def farm_path(self, path_file):
+        path_file = "data\\paths\\"+path_file+".txt"
+        with open(path_file, "r") as f:
+            for line in f.readlines():
+                line = line.strip()
+                mapx, mapy = line.split(',')
+                mapx, mapy = int(mapx), int(mapy)
+                print(mapx, mapy)
+                if (mapx, mapy) != (self.x_pos, self.y_pos):
+                    print("traveling")
+                    self.set_dest((mapx, mapy))
+                    self.travel_start()
+                    while self.traveling:
+                        sleep(1)
+                count = self.farm_map()
+                sleep(7 + count*3)
+

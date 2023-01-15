@@ -25,7 +25,7 @@ def main():
                     x_dest = int(bot_update_gui2.data[0])
                     y_dest = int(bot_update_gui2.data[1])
                     dofus_bot.set_dest((x_dest, y_dest))
-                    dofus_bot.automate_travel()
+                    dofus_bot.travel_start()
             
             elif msg == "pos":
                 g.AutoCloseMessageBox(dofus_bot.character_name, f"X = {dofus_bot.x_pos}    Y = {dofus_bot.y_pos}", 1)
@@ -49,6 +49,13 @@ def main():
 
             elif msg == "interrup":
                 g.AutoCloseMessageBox(dofus_bot.character_name, 'Action interrompue', 1)
+
+            elif msg == "pathsFarm":
+                path_box = g.EntryBox(dofus_bot.character_name)
+                path_box.mainloop()
+                if path_box.value:
+                    path_file = path_box.value
+                    dofus_bot.pathfarming_start(path_file)
             
             elif msg == "askQuit":
                 confirm_exit = g.ConfirmBox(dofus_bot.character_name)
@@ -99,21 +106,25 @@ def main():
                 gl.popQ.MyPut("stopRec")
                 gl.popQ.open = False
         elif key == k.Key.f3:
-            dofus_bot.farming_start()
+            dofus_bot.mapfarming_start()
         elif key == k.Key.f4:
-            if dofus_bot.creating or dofus_bot.traveling or dofus_bot.farming:
+            if dofus_bot.creating or dofus_bot.traveling or dofus_bot.mapfarming or dofus_bot.pathfarming:
                 dofus_bot.cancel_flag = True
                 dofus_bot.reset()
                 dofus_bot.cancel_flag = False
                 dofus_bot.travel_stop()
                 dofus_bot.creation_stop()
-                dofus_bot.farming_stop()
+                dofus_bot.mapfarming_stop()
+                dofus_bot.pathfarming_stop()
                 gl.popQ.MyPut("interrup")
                 gl.popQ.open = False
         elif key == k.Key.f5:
+            gl.popQ.MyPut("pathsFarm")
+            gl.popQ.open = False
+        elif key == k.Key.f6:
             gl.popQ.MyPut("askQuit")
             gl.popQ.open = False
-        elif key==k.Key.f6:
+        elif key==k.Key.f7:
             gl.popQ.MyPut("cmd")
             gl.popQ.open = False
 
