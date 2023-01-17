@@ -124,9 +124,6 @@ def main():
         elif key == k.Key.f6:
             gl.popQ.MyPut("askQuit")
             gl.popQ.open = False
-        elif key==k.Key.f7:
-            gl.popQ.MyPut("cmd")
-            gl.popQ.open = False
 
 
     bot_init_gui = g.DofusBotInterface(mode="init")
