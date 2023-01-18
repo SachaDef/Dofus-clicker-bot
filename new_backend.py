@@ -1,4 +1,5 @@
 import win32gui
+import os
 
 from ctypes import c_int, WinDLL, byref, sizeof
 from ctypes.wintypes import HWND, DWORD
@@ -19,18 +20,24 @@ def winEnumHandler(window_handle, _):      # Copied from https://stackoverflow.c
             windows.append((window_handle, title))
 
 # Filter active windows
-def window_filtering(string_filter):
+def window_filtering():
     global windows
     windows = []
     win32gui.EnumWindows(winEnumHandler, None)
-    dofus_windows = [window for window in windows if "Dofus 2" in window[1]]
-    if "Character name".startswith(string_filter) or string_filter == "":
-        return dofus_windows
-    else:
-        for dofus_window in dofus_windows:
-            if not dofus_window[1].lower().startswith(string_filter.lower()):
-                dofus_windows.remove(dofus_window)
-        return dofus_windows
+    return [window for window in windows if "Dofus 2" in window[1]]
+
+# Get all path files
+def get_all_paths(string_filter):
+    orig_dir = os.getcwd()
+    os.chdir("data/paths")
+    root_dir = os.getcwd()
+    path_files = os.listdir()
+    os.chdir(orig_dir)
+    return [root_dir+"\\"+path_file.replace(".txt", "") for path_file in path_files if (".txt" in path_file and
+                                                                    (path_file.startswith(string_filter) or string_filter == "Farming path"))]
+    
+
+
 
 # Automatisation bot
 class CharacterBot():
