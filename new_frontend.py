@@ -13,11 +13,12 @@ class MainApplication(ctk.CTk):
         super().__init__()
 
         # Global variables
-        self.width  = 800
-        self.height = 700
+        self.width  = self.winfo_screenwidth()
+        self.height = self.winfo_screenheight()
         
         # Initialization
         self.geometry(f"{self.width}x{self.height}")
+        self.state("zoomed")
         self.title("DofusBot")
         self.iconbitmap(r'img\icon.ico')
 
@@ -27,7 +28,7 @@ class MainApplication(ctk.CTk):
         self.tabs = ctk.CTkTabview(master=self)
         self.general_tab = self.tabs.add("General")
         self.settings_tab = self.tabs.add("Settings")
-        self.character_tabs = []
+        self.tracked_characters = []          # List of (character_name, character_tab, character_bot)
         self.tabs.set("General")
         self.tabs.grid(column=0, row=0, sticky='nsew')
 
@@ -53,19 +54,16 @@ class GeneralTabConstructor():
         self.character_frame = ctk.CTkFrame(master=self.tab)
         self.map_frame = ctk.CTkFrame(master=self.tab)
         self.path_frame = ctk.CTkFrame(master=self.tab)
-        # self.quit_frame = ctk.CTkFrame(master=self.tab)
 
 
         #### Character frame
-        self.character_frame.grid_columnconfigure((0, 1, 2), weight=1)
+        self.character_frame.grid_columnconfigure((0, 2), weight=10)
+        self.character_frame.grid_columnconfigure(1, weight=16)
         self.character_frame.grid_rowconfigure(0, weight=1)
 
         ####### Methods
         def refresh_windows():
-            self.windows = backend.window_filtering()
-            self.character_names = []
-            for window in self.windows:
-                self.character_names.append(window[1].split(" - ")[0])
+            self.windows, self.character_names = backend.window_filtering()
             if len(self.character_names) == 0:
                 self.character_window.configure(values=self.character_names,
                                                 fg_color=dark_red,
@@ -90,13 +88,21 @@ class GeneralTabConstructor():
             character_name = self.character_window_variable.get()
             if character_name not in self.character_names:
                 return
+            xy_popup = XYPopUp(f"{character_name} - Position")
+            xy_popup.grab_set()
+            self.main_app.wait_window(xy_popup)
+            x, y = xy_popup.x_value, xy_popup.y_value
+            if x is None or y is None:
+                return
             current_window = ()
             for window in self.windows:
                 if window[1].startswith(character_name):
                     current_window = window
             if not current_window:
                 return
-            self.new_character_tab(character_name)
+            character_bot = backend.CharacterBot(character_name, x, y, current_window[0])
+            self.main_app.tracked_characters.append((character_name, self.main_app.tabs.add(character_name), character_bot))
+            CharacterTabConstructor(self.main_app, character_name)
             
         ####### Content
         ########## 1st column
@@ -120,13 +126,13 @@ class GeneralTabConstructor():
 
         ####### Placement
         ########## 1st column
-        self.character_window.grid(column=0, row=0, padx=20, pady=5)
+        self.character_window.grid(column=0, row=0, pady=5)
 
         ########## 2nd column
-        self.refresh_windows_button.grid(column=1, row=0, padx=20, pady=5)
+        self.refresh_windows_button.grid(column=1, row=0, pady=5)
 
         ########## 3rd column
-        self.add_character_button.grid(column=2, row=0, padx=20, pady=5)
+        self.add_character_button.grid(column=2, row=0, pady=5)
 
         ########## Character frame
         self.character_frame.grid(column=0, row=0, sticky='nsew', pady=5)
@@ -342,7 +348,12 @@ class GeneralTabConstructor():
         self.path_frame.grid(column=0, row=2, sticky='nsew', pady=5)
 
 
-        
+
+class CharacterTabConstructor():
+
+    def __init__(self, main_app: MainApplication, character_name: str):
+        self.main_app = main_app
+
 
         
 
@@ -354,8 +365,8 @@ class PopUp(ctk.CTkToplevel):
         self.geometry(f"{width}x{height}")
         if duration:
             self.after(duration, self.destroy)
-        self.bind("<Return>", self.confirm)
-        self.bind("<Escape>", self.infirm)
+        self.bind("<Return>", lambda _: self.confirm())
+        self.bind("<Escape>", lambda _: self.infirm)
     
     def confirm(self):
         self.destroy()
@@ -370,29 +381,31 @@ class XYPopUp(PopUp):
         bg = "#212121"
         self.x_value=None
         self.y_value=None
+
         self.configure(bg_color=bg, fg_color=bg)
         self.grid_columnconfigure(0, weight=1)
         self.grid_rowconfigure(0, weight=1)
         container = ctk.CTkFrame(self, fg_color=bg)
         ctk.CTkLabel(container, text="Character X = ").grid(column=0, row=0)
         self.x_entry = ctk.CTkEntry(container)
-        self.x_entry.grid(column=1, row=0, pady=10)
-        ctk.CTkLabel(container, text="Character y = ").grid(column=0, row=1)
+        self.x_entry.grid(column=1, row=0)
+        ctk.CTkLabel(container, text="Character Y = ").grid(column=0, row=1)
         self.y_entry = ctk.CTkEntry(container)
-        self.y_entry.grid(column=1, row=1, pady=10)
-        ctk.CTkButton(container, text="Validate", command=self.confirm).grid(column=0, row=2, columnspan=2)
+        self.y_entry.grid(column=1, row=1, pady=15)
+        ctk.CTkButton(container, text="Validate", command=self.confirm).grid(column=0, row=2, columnspan=2, pady=(15, 0), sticky='e')
         self.error_label = ctk.CTkLabel(container, text="Unvalid coordinates")
         container.grid()
-        self.mainloop()
+
 
     def confirm(self):
         if 1 <= len(self.x_entry.get()) <= 4 and 1 <= len(self.y_entry.get()) <= 4\
         and self.x_entry.get().replace("-", "").isdigit() and self.y_entry.get().replace("-", "").isdigit():
             self.x_value = int(self.x_entry.get())
+            self.y_value = int(self.y_entry.get())
+            self.destroy()
         else:
             self.error_label.grid(row=3, column=0, columnspan=2)
-            self.after(2000, lambda: self.error_label.grid_remove())
-        self.destroy()
+            self.after(1000, lambda: self.error_label.grid_remove())
 
         
 
