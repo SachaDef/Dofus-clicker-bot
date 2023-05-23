@@ -1,38 +1,55 @@
+import new_globals as globals
 import win32gui
 import os
-from time import sleep
+import time
 import pyautogui as pag
-from threading import Thread
-from win32api import MAKELONG
-from win32con import WM_LBUTTONDOWN, WM_LBUTTONUP, MK_LBUTTON
+import threading
+import win32api
+import win32con
 import pynput.mouse as m
-
-from ctypes import c_int, WinDLL, byref, sizeof
-from ctypes.wintypes import HWND, DWORD
-dwmapi = WinDLL("dwmapi")
-DWMWA_CLOAKED = 14 
-isCloacked = c_int(0)
+import pickle
 
 
 # Get active windows
 def winEnumHandler(window_handle, _):      # Copied from https://stackoverflow.com/questions/61865399/win32gui-shows-some-windows-that-are-not-open
     if win32gui.IsWindowVisible(window_handle) and win32gui.GetWindowText(window_handle) != '':
-        dwmapi.DwmGetWindowAttribute(HWND(window_handle),
-                                        DWORD(DWMWA_CLOAKED),
-                                        byref(isCloacked),
-                                        sizeof(isCloacked))
+        globals.DwmGetWindowAttribute(globals.HWND(window_handle),
+                                     globals.DWORD(globals.DWMWA_CLOAKED),
+                                     globals.byref(globals.isCloacked),
+                                     globals.sizeof(globals.isCloacked))
         title = win32gui.GetWindowText(window_handle)
-        if (isCloacked.value == 0):
-            windows.append((window_handle, title))
+        if (globals.isCloacked.value == 0):
+            globals.active_windows.append((window_handle, title))
 
 # Filter active windows
 def window_filtering():
-    global windows
-    windows = []
+    globals.active_windows = []
     win32gui.EnumWindows(winEnumHandler, None)
-    windows = [window for window in windows if "Dofus 2" in window[1]]
-    character_names = [window[1].split(" - ")[0] for window in windows]
-    return windows, character_names
+    globals.active_windows = [window for window in globals.active_windows if "Dofus 2" in window[1]]
+    globals.active_character_names = [window[1].split(" - ")[0] for window in globals.active_windows]
+
+# Get window handle from given character
+def get_character_window(character_name):
+    for window in globals.active_windows:
+        if window[1].startswith(character_name):
+            return window
+    return ()
+
+
+# Get click coordinates associated to map coordinates from file
+def map_get_click_coordinates(x, y):
+    with open("data/maps.bin", "rb") as file:
+        try:
+            map_click_coordinates_dict: dict = pickle.load(file)   #TODO cache ?
+        except EOFError:
+            return "No click coordinates for this map yet !"
+    click_coordinates = map_click_coordinates_dict.get((x, y))
+    if click_coordinates is None:
+        return "No click coordinates for this map yet !"
+    click_coordinates_as_text = ["("+str(a)+", "+str(b)+")" for a, b in click_coordinates]
+    return '\n'.join(click_coordinates_as_text)
+
+
 
 # Get all path files
 def get_all_paths(string_filter):
@@ -41,7 +58,7 @@ def get_all_paths(string_filter):
     root_dir = os.getcwd()
     path_files = os.listdir()
     os.chdir(orig_dir)
-    return [root_dir+"\\"+path_file.replace(".txt", "") for path_file in path_files if (".txt" in path_file and
+    return [root_dir+"\\"+path_file.replace(".bin", "") for path_file in path_files if (".bin" in path_file and
                                                                     (path_file.startswith(string_filter) or string_filter == "Farming path"))]
     
 
@@ -68,13 +85,13 @@ class CharacterBot():
         self.cancel_flag = False
         self.window_hwnd = window_handle
         self.click_coords = ""
-        self.maps_file = r"data\maps.txt"
+        self.maps_file = r"data\maps.bin"
 
 
 # ==== START/STOP METHODS ==== #
     def travel_start(self):
         self.traveling = True
-        self.travel_thread = Thread(target=self.travel_complete)
+        self.travel_thread = threading.Thread(target=self.travel_complete)
         self.travel_thread.start()
 
     def travel_stop(self):
@@ -90,7 +107,7 @@ class CharacterBot():
 
     def mapfarming_start(self):
         self.mapfarming = True
-        self.mapfarm_thread = Thread(target=self.farm_map)
+        self.mapfarm_thread = threading.Thread(target=self.farm_map)
         self.mapfarm_thread.start()
 
     def mapfarming_stop(self):
@@ -99,7 +116,7 @@ class CharacterBot():
 
     def pathfarming_start(self, arg):
         self.pathfarming = True
-        self.pathfarm_thread = Thread(target=self.farm_path, args=(arg,))
+        self.pathfarm_thread = threading.Thread(target=self.farm_path, args=(arg,))
         self.pathfarm_thread.start()
 
     def pathfarming_stop(self):
@@ -123,10 +140,10 @@ class CharacterBot():
 
 # ==== CLICKING METHOD ==== #
     def click(self, x, y):
-        lParam = MAKELONG(x, y-28)
-        win32gui.PostMessage(self.window_hwnd, WM_LBUTTONDOWN, MK_LBUTTON, lParam)
-        sleep(0.05)
-        win32gui.PostMessage(self.window_hwnd, WM_LBUTTONUP, MK_LBUTTON, lParam)
+        lParam = win32api.MAKELONG(x, y-28)
+        win32gui.PostMessage(self.window_hwnd, win32con.WM_LBUTTONDOWN, win32con.MK_LBUTTON, lParam)
+        time.sleep(0.05)
+        win32gui.PostMessage(self.window_hwnd, win32con.WM_LBUTTONUP, win32con.MK_LBUTTON, lParam)
 
 # ==== MOVEMENT BY CLICK METHODS ==== #
     def wrong_movement_modif(self):
@@ -143,14 +160,14 @@ class CharacterBot():
 
     def wait_3_sec(self):
         self.cancel_flag = True
-        sleep(3)
+        time.sleep(3)
         self.cancel_flag = False
 
     def move_right(self):
         if self.cancel_flag and self.previous_map != 'r':
             self.wrong_movement_modif()
         self.x_pos += 1
-        self.cancel_thread = Thread(target=self.wait_3_sec)
+        self.cancel_thread = threading.Thread(target=self.wait_3_sec)
         self.cancel_thread.start()
         self.click(1650, 410)
         self.previous_map = 'r'
@@ -159,7 +176,7 @@ class CharacterBot():
         if self.cancel_flag and self.previous_map != 'l':
             self.wrong_movement_modif()
         self.x_pos -= 1
-        self.cancel_thread = Thread(target=self.wait_3_sec)
+        self.cancel_thread = threading.Thread(target=self.wait_3_sec)
         self.cancel_thread.start()
         self.click(300, 530)
         self.previous_map = 'l'
@@ -168,7 +185,7 @@ class CharacterBot():
         if self.cancel_flag and self.previous_map != 'u':
             self.wrong_movement_modif()
         self.y_pos -= 1
-        self.cancel_thread = Thread(target=self.wait_3_sec)
+        self.cancel_thread = threading.Thread(target=self.wait_3_sec)
         self.cancel_thread.start()
         self.click(1020, 40)
         self.previous_map = 'u'
@@ -177,7 +194,7 @@ class CharacterBot():
         if self.cancel_flag and self.previous_map != 'd':
             self.wrong_movement_modif()
         self.y_pos += 1
-        self.cancel_thread = Thread(target=self.wait_3_sec)
+        self.cancel_thread = threading.Thread(target=self.wait_3_sec)
         self.cancel_thread.start()
         self.click(900, 900)
         self.previous_map = 'd'
@@ -197,26 +214,26 @@ class CharacterBot():
                 if not self.traveling:
                     return
                 self.move_up()
-                sleep(3)
+                time.sleep(3)
                 if self.x_pos == self.x_dest and self.y_pos == self.y_dest:
                     pass
                     # gl.popQ.MyPut("endTr")
                     # gl.popQ.open = False
                 if self.traveling:
-                    sleep(5)
+                    time.sleep(5)
                 self.cancel_thread = None
         else:
             for i in range(value):
                 if not self.traveling:
                     return
                 self.move_down()
-                sleep(3)
+                time.sleep(3)
                 if self.x_pos == self.x_dest and self.y_pos == self.y_dest:
                     pass
                     # gl.popQ.MyPut("endTr")
                     # gl.popQ.open = False
                 if self.traveling:
-                    sleep(5)
+                    time.sleep(5)
                 self.cancel_thread = None
 
     def travel_horizontal(self, value):
@@ -227,26 +244,26 @@ class CharacterBot():
                 if not self.traveling:
                     return
                 self.move_left()
-                sleep(3)
+                time.sleep(3)
                 if self.x_pos == self.x_dest and self.y_pos == self.y_dest:
                     pass
                     # gl.popQ.MyPut("endTr")
                     # gl.popQ.open = False
                 if self.traveling:
-                    sleep(5)
+                    time.sleep(5)
                 self.cancel_thread = None
         else:
             for i in range(value):
                 if not self.traveling:
                     return
                 self.move_right()
-                sleep(3)
+                time.sleep(3)
                 if self.x_pos == self.x_dest and self.y_pos == self.y_dest:
                     pass
                     # gl.popQ.MyPut("endTr")
                     # gl.popQ.open = False
                 if self.traveling:
-                    sleep(5)
+                    time.sleep(5)
                 self.cancel_thread = None
 
     def travel_complete(self):
@@ -286,7 +303,7 @@ class CharacterBot():
                     for coord in coords:
                         x, y = int(coord.split(",")[0][1:]), int(coord.split(",")[1][:-1])
                         self.click(x, y)
-                        sleep(0.1)
+                        time.sleep(0.1)
                     pag.keyUp("shift")
                     break
                 else:
@@ -297,7 +314,7 @@ class CharacterBot():
         return len(coords)
         
     def farm_path(self, path_file):
-        path_file = "data\\paths\\"+path_file+".txt"
+        path_file = "data\\paths\\"+path_file+".bin"
         with open(path_file, "r") as f:
             for line in f.readlines():
                 line = line.strip()
@@ -309,6 +326,6 @@ class CharacterBot():
                     self.set_dest((mapx, mapy))
                     self.travel_start()
                     while self.traveling:
-                        sleep(1)
+                        time.sleep(1)
                 count = self.farm_map()
-                sleep(7 + count*3)
+                time.sleep(7 + count*3)
