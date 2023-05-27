@@ -23,6 +23,8 @@ class MainApplication(ctk.CTk):
         self.title("DofusBot")
         self.iconbitmap(r'img\icon.ico')
         self.minsize(800, 600)
+        backend.save_backup("open")
+        self.protocol("WM_DELETE_WINDOW", self.clean_exit)
 
         # Tabs initialization
         self.grid_columnconfigure(0, weight=1)
@@ -37,6 +39,10 @@ class MainApplication(ctk.CTk):
         GeneralTabConstructor(self, self.general_tab)
         SettingsTabConstructor(self, self.settings_tab)
         self.after(5, self.state, "zoomed")
+
+    def clean_exit(self):
+        backend.save_backup("close")
+        self.destroy()
 
 
 class GeneralTabConstructor():
@@ -162,7 +168,7 @@ class GeneralTabConstructor():
                 if not confirm_popup.value:
                     return
             self.map_click_coordinates_textbox.delete("1.0", 'end')
-            self.map_click_coordinates_textbox.insert("1.0", backend.map_get_click_coordinates(map_x, map_y))
+            self.map_click_coordinates_textbox.insert("1.0", backend.load_click_coordinates(map_x, map_y))
             globals.map_textbox_changed = False
 
         def new_map():#TODO
@@ -183,11 +189,16 @@ class GeneralTabConstructor():
             click_popup = StartStopClickListening("Click Listener", self.main_app)
             self.main_app.wait_window(click_popup)
             if click_popup.click_coordinates:
-                with open("data/maps.bin", "rb") as file:
-                    try:
-                        click_coordinates = pickle.load(file)
-                    except EOFError:
-                        click_coordinates = {}
+                if not backend.click_coordinates_exist(x, y):
+                    backend.save_click_coordinates(x, y, click_popup.click_coordinates)
+                else:
+                    confirm_popup2 = ConfirmPopUp("New map", "Already existing coordinates. Overwrite them ?")
+                    confirm_popup2.grab_set()
+                    self.main_app.wait_window(confirm_popup2)
+                    if not confirm_popup2.value:
+                        return
+                    backend.save_click_coordinates(x, y, click_popup.click_coordinates)
+                    
             
 
         def delete_map():#TODO

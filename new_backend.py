@@ -10,49 +10,83 @@ import pynput.mouse as m
 import pickle
 
 
+# ==== WINDOW HANDLING ==== #
 # Get active windows
-def winEnumHandler(window_handle, _):      # Copied from https://stackoverflow.com/questions/61865399/win32gui-shows-some-windows-that-are-not-open
+def winEnumHandler(window_handle: int, _) -> None:      # Copied from https://stackoverflow.com/questions/61865399/win32gui-shows-some-windows-that-are-not-open
     if win32gui.IsWindowVisible(window_handle) and win32gui.GetWindowText(window_handle) != '':
         globals.DwmGetWindowAttribute(globals.HWND(window_handle),
                                      globals.DWORD(globals.DWMWA_CLOAKED),
                                      globals.byref(globals.isCloacked),
                                      globals.sizeof(globals.isCloacked))
-        title = win32gui.GetWindowText(window_handle)
+        title: str = win32gui.GetWindowText(window_handle)
         if (globals.isCloacked.value == 0):
             globals.active_windows.append((window_handle, title))
 
-# Filter active windows
-def window_filtering():
+# Filter out non-dofus windows
+def window_filtering() -> None:
     globals.active_windows = []
     win32gui.EnumWindows(winEnumHandler, None)
     globals.active_windows = [window for window in globals.active_windows if "Dofus 2" in window[1]]
     globals.active_character_names = [window[1].split(" - ")[0] for window in globals.active_windows]
 
-# Get window handle from given character
-def get_character_window(character_name):
+# Get window handle from given character name
+Window = tuple[()] | tuple[int, str]
+def get_character_window(character_name: str) -> Window:
     for window in globals.active_windows:
         if window[1].startswith(character_name):
             return window
     return ()
 
 
+# ==== MAP & CLICKS ==== #
+MapCoords = tuple[int, int]
+ScreenCoords = tuple[int, int]
+Clicks = list[ScreenCoords]
 # Get click coordinates associated to map coordinates from file
-def map_get_click_coordinates(x, y):
+def load_click_coordinates(x: int, y: int) -> str:
     with open("data/maps.bin", "rb") as file:
         try:
-            map_click_coordinates_dict: dict = pickle.load(file)   #TODO cache ?
+            click_coordinates: dict[MapCoords, Clicks] = pickle.load(file)   #TODO cache ?
         except EOFError:
             return "No click coordinates for this map yet !"
-    click_coordinates = map_click_coordinates_dict.get((x, y))
+    click_coordinates = click_coordinates.get((x, y))
     if click_coordinates is None:
         return "No click coordinates for this map yet !"
     click_coordinates_as_text = ["("+str(a)+", "+str(b)+")" for a, b in click_coordinates]
     return '\n'.join(click_coordinates_as_text)
 
+def click_coordinates_exist(x: int, y: int) -> bool:
+    with open("data/maps.bin", "rb") as file:
+        try:
+            click_coordinates: dict[MapCoords, Clicks] = pickle.load(file)   #TODO cache ?
+        except EOFError:
+            return False
+        if (x, y) in click_coordinates.keys():
+            return True
+        return False
+
+def save_click_coordinates(x: int, y: int, coordinates: str) -> None:
+    with open("data/maps.bin", "rb") as file:
+        try:
+            click_coordinates: dict[MapCoords, Clicks] = pickle.load(file)
+        except EOFError:
+            click_coordinates: dict[MapCoords, Clicks] = {}
+
+    coordinates = coordinates.split(";")[:-1]
+    coordinates_list = []
+    for coordinate in coordinates:
+        x_click, y_click = coordinate.replace("(", "").replace(")", "").split(",")
+        coordinates_list.append((int(x_click), int(y_click)))
+    click_coordinates[(x, y)] = coordinates_list
+
+    with open("data/maps.bin", "wb") as file:
+        pickle.dump(click_coordinates, file)
 
 
+
+# ==== PATHS & MAPS ==== #
 # Get all path files
-def get_all_paths(string_filter):
+def get_all_paths(string_filter: str) -> list[str]:
     orig_dir = os.getcwd()
     os.chdir("data/paths")
     root_dir = os.getcwd()
@@ -60,6 +94,36 @@ def get_all_paths(string_filter):
     os.chdir(orig_dir)
     return [root_dir+"\\"+path_file.replace(".bin", "") for path_file in path_files if (".bin" in path_file and
                                                                     (path_file.startswith(string_filter) or string_filter == "Farming path"))]
+
+
+# ==== SAFE EXIT ==== #
+# Save backup data before app closing
+def save_backup(type: str) -> None:
+    program_root = os.getcwd()
+
+    for root, _, files in os.walk("data"):
+        if root == "data":
+            for filename in files:
+                data_filename = os.path.join(program_root, "data", filename)
+                backup_filename = os.path.join(program_root, f"backup_{type}", filename)
+                with open(data_filename, "rb") as data_file:
+                    try:
+                        data = pickle.load(data_file)
+                    except EOFError:
+                        continue
+                with open(backup_filename, "wb") as backup_file:
+                    pickle.dump(data, backup_file)
+        elif root == "data\\paths":
+            for filename in files:
+                data_filename = os.path.join(program_root, "data\\paths", filename)
+                backup_filename = os.path.join(program_root, f"backup_{type}\\paths", filename)
+                with open(data_filename, "rb") as data_file:
+                    try:
+                        data = pickle.load(data_file)
+                    except EOFError:
+                        continue
+                with open(backup_filename, "wb") as backup_file:
+                    pickle.dump(data, backup_file)
     
 
 

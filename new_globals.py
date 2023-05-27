@@ -1,4 +1,5 @@
 import ctypes
+from typing import List, Tuple, Optional, Union, Any
 
 # Constants
 CLEAR_RED = '#e60000'
@@ -11,14 +12,14 @@ MAIN_BACKGROUND_GRAY = "#212121"
 ENTRY_GRAY = '#343638'
 
 # Shared variables
-tracked_characters = []   # List of (character_name, character_tab, character_bot)
-click_listening_flag = False
-active_windows = []
-active_character_names = []
-path_files = []
-path_names = []
-map_textbox_changed = False
-path_textbox_changed = False
+tracked_characters: list = []   # List of (character_name, character_tab, character_bot)
+click_listening_flag: bool = False
+active_windows: list = []
+active_character_names: list = []
+path_files: list = []
+path_names: list = []
+map_textbox_changed: bool = False
+path_textbox_changed: bool = False
 
 # ctypes clarity
 DwmGetWindowAttribute = ctypes.WinDLL("dwmapi").DwmGetWindowAttribute
