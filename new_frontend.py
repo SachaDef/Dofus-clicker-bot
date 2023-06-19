@@ -1,12 +1,12 @@
 import customtkinter as ctk
 ctk.set_appearance_mode("Dark")
 ctk.set_default_color_theme("dark-blue")
+from CTkMessagebox import CTkMessagebox
 
 import new_globals as globals
 import new_backend as backend
 
 import pynput.mouse as mouse
-import pickle
 
 # ==== Main GUI window ==== #
 class MainApplication(ctk.CTk):
@@ -15,8 +15,8 @@ class MainApplication(ctk.CTk):
         super().__init__()
 
         # Global variables
-        self.width  = self.winfo_screenwidth()
-        self.height = self.winfo_screenheight()
+        self.width  = 800
+        self.height = 600
         
         # Initialization
         self.geometry(f"{self.width}x{self.height}")
@@ -25,24 +25,107 @@ class MainApplication(ctk.CTk):
         self.minsize(800, 600)
         backend.save_backup("open")
         self.protocol("WM_DELETE_WINDOW", self.clean_exit)
+        self.after(5, lambda: self.state("zoomed"))
 
         # Tabs initialization
-        self.grid_columnconfigure(0, weight=1)
-        self.grid_rowconfigure(0, weight=1)
         self.tabs = ctk.CTkTabview(master=self)
         self.general_tab = self.tabs.add("General")
         self.settings_tab = self.tabs.add("Settings")
         self.tabs.set("General")
-        self.tabs.grid(column=0, row=0, sticky='nsew')
+        self.tabs.pack(side=ctk.TOP, fill=ctk.BOTH, expand=True)
 
         # Tabs creation
-        GeneralTabConstructor(self, self.general_tab)
-        SettingsTabConstructor(self, self.settings_tab)
-        self.after(5, self.state, "zoomed")
+        self.general_constructor = GeneralTabConstructor(self, self.general_tab)
+        self.settings_constructor = SettingsTabConstructor(self, self.settings_tab)
 
+        # Bindings
+        self.bind("<Control-q>", lambda event: self.clean_exit())
+        self.bind("<Button-1>", self.remove_focus)
+        self.bind("<Escape>", lambda _: self.focus_set())
+        self.bind("<Control-Return>", self.enter)
+        self.bind("<Control-Left>", self.left)
+        self.bind("<Control-Right>", self.right)
+        self.bind("<Control-Up>", self.up)
+        self.bind("<Control-Down>", self.down)
+        self.bind("<Control-n>", self.n)
+        self.bind("<Control-d>", self.d)
+        self.bind("<Control-Shift-KeyPress-N>", self.N)
+
+    # Methods
     def clean_exit(self):
         backend.save_backup("close")
         self.destroy()
+
+    def remove_focus(self, event):
+        if event.widget not in (self.general_constructor.map_click_coordinates_textbox._textbox,
+                                self.general_constructor.path_map_coordinates_textbox._textbox,
+                                self.general_constructor.farming_path._entry,
+                                self.general_constructor.map_xcoord_entry.entry._entry,
+                                self.general_constructor.map_ycoord_entry.entry._entry):
+            self.focus_set()
+
+    def enter(self, event):
+        match self.tabs.get():
+            case "General":
+                if event.widget not in (self.general_constructor.map_click_coordinates_textbox._textbox,
+                                        self.general_constructor.path_map_coordinates_textbox._textbox)\
+                and self.general_constructor.add_character_button._state == "normal":
+                    self.general_constructor.add_character_button._command()
+            
+
+    def left(self, event):
+        match self.tabs.get():
+            case "General":
+                if event.widget not in (self.general_constructor.map_click_coordinates_textbox._textbox,
+                                        self.general_constructor.path_map_coordinates_textbox._textbox,
+                                        self.general_constructor.farming_path._entry):
+                    self.general_constructor.map_xcoord_entry.subtract()
+
+    def right(self, event):
+        match self.tabs.get():
+            case "General":
+                if event.widget not in (self.general_constructor.path_map_coordinates_textbox._textbox,
+                                        self.general_constructor.map_click_coordinates_textbox._textbox,
+                                        self.general_constructor.farming_path._entry):
+                    self.general_constructor.map_xcoord_entry.add()
+
+    def up(self, event):
+        match self.tabs.get():
+            case "General":
+                if event.widget not in (self.general_constructor.path_map_coordinates_textbox._textbox,
+                                        self.general_constructor.map_click_coordinates_textbox._textbox,
+                                        self.general_constructor.farming_path._entry):
+                    self.general_constructor.map_ycoord_entry.subtract()
+
+    def down(self, event):
+        match self.tabs.get():
+            case "General":
+                if event.widget not in (self.general_constructor.path_map_coordinates_textbox._textbox,
+                                        self.general_constructor.map_click_coordinates_textbox._textbox,
+                                        self.general_constructor.farming_path._entry):
+                    self.general_constructor.map_ycoord_entry.add()
+
+    def n(self, event):
+        match self.tabs.get():
+            case "General":
+                self.general_constructor.add_map_button._command()
+            case _:
+                return
+
+    def d(self, event):
+        match self.tabs.get():
+            case "General":
+                self.general_constructor.remove_map_button._command()
+            case _:
+                return
+
+    def N(self, event):
+        match self.tabs.get():
+            case "General":
+                self.general_constructor.add_path_button._command()
+            case _:
+                return
+
 
 
 class GeneralTabConstructor():
@@ -54,12 +137,17 @@ class GeneralTabConstructor():
 
         # Initialization
         self.tab.grid_columnconfigure(0, weight=1)
-        self.tab.grid_rowconfigure(0, weight=1)
-        self.tab.grid_rowconfigure((1, 2), weight=2)
+        self.tab.grid_rowconfigure(0, weight=2)
+        self.tab.grid_rowconfigure(1, weight=4)
+        self.tab.grid_rowconfigure(2, weight=7) #TODO:weights ?
+        # I do not understand why (1,2,2) weights doesn't give the 2 last rows the same height, (2,4,7) weights seemed to do it better
+        # I now understand, the configuration doesn't split the rows' sizes according to the weight, it only splits the 
+        # REMAINING EMPTY SPACE between them. A fix would be to artificially pad the rows so they have the same height without the
+        # empty space, and then with the same weight they will have the same final height
         self.character_frame = ctk.CTkFrame(master=self.tab)
         self.map_frame = ctk.CTkFrame(master=self.tab)
         self.path_frame = ctk.CTkFrame(master=self.tab)
-
+        
         #### Character frame
         self.character_frame.grid_columnconfigure((0, 2), weight=10)
         self.character_frame.grid_columnconfigure(1, weight=16)
@@ -84,7 +172,9 @@ class GeneralTabConstructor():
                                                                              button_color=globals.BORDER_GRAY))
 
         def validate_character():
-            if self.character_window_variable.get() in globals.active_character_names:
+            character_name = self.character_window_variable.get()
+            if character_name in globals.active_character_names and\
+            character_name not in backend.get_all_nth_from_list(globals.tracked_characters, 0):
                 self.add_character_button.configure(state='normal')
             else:
                 self.add_character_button.configure(state='disabled')
@@ -106,6 +196,7 @@ class GeneralTabConstructor():
             character_info = (character_name, self.main_app.tabs.add(character_name), character_bot)
             globals.tracked_characters.append(character_info)
             CharacterTabConstructor(self.main_app, character_info)
+            validate_character()
             
         ####### Content
         ########## 1st column
@@ -151,95 +242,189 @@ class GeneralTabConstructor():
         self.map_frame.grid_rowconfigure(1, weight=4)
 
         ####### Methods
-        def show_map():
+        def get_xy() -> tuple[int, int] | None:
+            if self.map_xcoord_entry.get() in ("", "-") or self.map_ycoord_entry.get() in ("", "-"):
+                return
             try:
                 map_x, map_y = int(self.map_xcoord_entry.get()), int(self.map_ycoord_entry.get())
+                return map_x, map_y
             except ValueError:
                 self.map_coord_value_error_label.configure(text="Invalid coordinates")
                 self.main_app.after(1000, lambda: self.map_coord_value_error_label.configure(text=""))
-                self.map_xcoord_entry.delete(0, 'end')
-                self.map_ycoord_entry.delete(0, 'end')
+                self.map_xcoord_entry.set("0")
+                self.map_ycoord_entry.set("0")
                 self.map_xcoord_entry.focus_set()
                 return
+
+        def show_map(x=None, y=None):
+            if x is not None and y is not None:
+                map_x, map_y = x, y
+            else:
+                try:
+                    map_x, map_y = get_xy()
+                except TypeError:
+                    return
             if globals.map_textbox_changed:
-                confirm_popup = ConfirmPopUp("Show map - Conflict", "Drop changes made to the map click coordinates ?")
+                confirm_popup = ConfirmPopUp("Show map - Conflict", f"Discard edits made for map ({globals.displayed_map[0]}, {globals.displayed_map[1]}) ?")
                 confirm_popup.grab_set()
                 self.main_app.wait_window(confirm_popup)
                 if not confirm_popup.value:
                     return
+            backend.set_user_changing(False)
             self.map_click_coordinates_textbox.delete("1.0", 'end')
             self.map_click_coordinates_textbox.insert("1.0", backend.load_click_coordinates(map_x, map_y))
+            self.map_click_coordinates_textbox.edit_modified(False)
             globals.map_textbox_changed = False
+            self.main_app.after(100, lambda: backend.set_user_changing(True))
+            globals.displayed_map = (map_x, map_y)
+            self.map_click_coordinates_label.configure(text="Associated click coordinates")
 
-        def new_map():#TODO
+        def new_map():
             try:
-                x, y = int(self.map_xcoord_entry.get()), int(self.map_ycoord_entry.get())
-            except ValueError:
-                self.map_coord_value_error_label.configure(text="Invalid coordinates")
-                self.main_app.after(1000, lambda: self.map_coord_value_error_label.configure(text=""))
-                self.map_xcoord_entry.delete(0, 'end')
-                self.map_ycoord_entry.delete(0, 'end')
-                self.map_xcoord_entry.focus_set()
+                map_x, map_y = get_xy()
+            except TypeError:
                 return
-            confirm_popup = ConfirmPopUp("New map", f"Create new click coordinates for map ({x}, {y}) ?")
+            if backend.click_coordinates_exist(map_x, map_y):
+                confirm_popup2 = ConfirmPopUp("New map", "Already existing coordinates. Overwrite them ?")
+                confirm_popup2.grab_set()
+                self.main_app.wait_window(confirm_popup2)
+                if not confirm_popup2.value:
+                    return
+            self.main_app.after(200, backend.new_map_foreground)
+            click_popup = StartStopClickListening("Click Listener", self.main_app)
+            click_popup.grab_set()
+            self.main_app.wait_window(click_popup)
+            if not click_popup.click_coordinates:
+                return
+            backend.save_click_coordinates(map_x, map_y, click_popup.click_coordinates)
+            if (map_x, map_y) == globals.displayed_map:
+                backend.set_user_changing(False)
+                self.map_click_coordinates_textbox.edit_modified(False)
+                globals.map_textbox_changed = False
+                self.main_app.after(100, lambda: backend.set_user_changing(True))
+                show_map(map_x, map_y)
+            elif not globals.map_textbox_changed:
+                show_map(map_x, map_y)
+
+        def delete_map():
+            try:
+                map_x, map_y = get_xy()
+            except TypeError:
+                return
+            if not backend.click_coordinates_exist(map_x, map_y):
+                self.map_buttons_error_label.configure(text=f"No clicks for map ({map_x}, {map_y})")
+                self.main_app.after(1000, lambda: self.map_buttons_error_label.configure(text=""))
+                return
+            confirm_popup = ConfirmPopUp("Delete map", f"Delete click coordinates for map ({map_x}, {map_y}) ?")
             confirm_popup.grab_set()
             self.main_app.wait_window(confirm_popup)
             if not confirm_popup.value:
                 return
-            click_popup = StartStopClickListening("Click Listener", self.main_app)
-            self.main_app.wait_window(click_popup)
-            if click_popup.click_coordinates:
-                if not backend.click_coordinates_exist(x, y):
-                    backend.save_click_coordinates(x, y, click_popup.click_coordinates)
-                else:
-                    confirm_popup2 = ConfirmPopUp("New map", "Already existing coordinates. Overwrite them ?")
-                    confirm_popup2.grab_set()
-                    self.main_app.wait_window(confirm_popup2)
-                    if not confirm_popup2.value:
-                        return
-                    backend.save_click_coordinates(x, y, click_popup.click_coordinates)
-                    
-            
-
-        def delete_map():#TODO
-            pass
+            backend.delete_click_coordinates(map_x, map_y)
+            if (map_x, map_y) == globals.displayed_map:
+                backend.set_user_changing(False)
+                self.map_click_coordinates_textbox.edit_modified(False)
+                globals.map_textbox_changed = False
+                self.main_app.after(100, lambda: backend.set_user_changing(True))
+                show_map(map_x, map_y)
         
-        def save_map_changes():#TODO
-            pass
+        def save_map_edits():
+            try:
+                map_x, map_y = globals.displayed_map
+            except ValueError:
+                self.map_buttons_error_label.configure(text="No map displayed")
+                self.main_app.after(1000, lambda: self.map_buttons_error_label.configure(text=""))
+                return
+            if not globals.map_textbox_changed:
+                self.map_buttons_error_label.configure(text="No edits made")
+                self.main_app.after(1000, lambda: self.map_buttons_error_label.configure(text=""))
+                return
+            textbox_click_coordinates = backend.str_to_list_coordinates(self.map_click_coordinates_textbox.get("1.0", "end"))
+            if textbox_click_coordinates is None:
+                self.map_buttons_error_label.configure(text=f"Invalid edits made")
+                self.main_app.after(1000, lambda: self.map_buttons_error_label.configure(text=""))
+                return
+            confirm_popup = ConfirmPopUp("Edit map", f"Edit click coordinates for map ({map_x}, {map_y}) ?")
+            confirm_popup.grab_set()
+            self.main_app.wait_window(confirm_popup)
+            if not confirm_popup.value:
+                return
+            backend.edit_click_coordinates(map_x, map_y, textbox_click_coordinates)
+            backend.set_user_changing(False)
+            self.map_click_coordinates_textbox.edit_modified(False)
+            globals.map_textbox_changed = False
+            self.main_app.after(100, lambda: backend.set_user_changing(True))
+            self.map_click_coordinates_label.configure(text="Associated click coordinates")
 
-        def reset_map_changes():#TODO /!\ map_textbox_changed variable !
-            pass
+        def reset_map_edits():
+            try:
+                map_x, map_y = globals.displayed_map
+            except ValueError:
+                self.map_buttons_error_label.configure(text="No map displayed")
+                self.main_app.after(1000, lambda: self.map_buttons_error_label.configure(text=""))
+                return
+            if not globals.map_textbox_changed:
+                self.map_buttons_error_label.configure(text="No edits made")
+                self.main_app.after(1000, lambda: self.map_buttons_error_label.configure(text=""))
+                return
+            confirm_popup = ConfirmPopUp("Reset map", f"Discard edits made for map ({map_x}, {map_y}) ?")
+            confirm_popup.grab_set()
+            self.main_app.wait_window(confirm_popup)
+            if not confirm_popup.value:
+                return
+            backend.set_user_changing(False)
+            self.map_click_coordinates_textbox.edit_modified(False)
+            globals.map_textbox_changed = False
+            self.main_app.after(100, lambda: backend.set_user_changing(True))
+            show_map(map_x, map_y)
+        
+        def textbox_modification():
+            if globals.user_changing:
+                globals.map_textbox_changed = True
+                self.map_click_coordinates_label.configure(text="Associated click coordinates (*)")
+
+            
 
         ####### Content
         ########## 1st column
         self.map_coordinates_label = ctk.CTkLabel(master=self.map_frame,
                                                   text="Map coordinates")
         self.map_coordinates_container = ctk.CTkFrame(master=self.map_frame,
-                                                  bg_color=globals.SECONDARY_BACKGROUND_GRAY,
-                                                  fg_color=globals.SECONDARY_BACKGROUND_GRAY)
+                                                      bg_color=globals.SECONDARY_BACKGROUND_GRAY,
+                                                      fg_color=globals.SECONDARY_BACKGROUND_GRAY)
         self.map_xcoord_label = ctk.CTkLabel(master=self.map_coordinates_container,
-                                             text="X = ",
-                                             bg_color=globals.SECONDARY_BACKGROUND_GRAY)
-        self.map_xcoord_entry = ctk.CTkEntry(master=self.map_coordinates_container,
+                                             text="X :   ",
                                              bg_color=globals.SECONDARY_BACKGROUND_GRAY)
         self.map_ycoord_label = ctk.CTkLabel(master=self.map_coordinates_container,
-                                             text="Y = ",
+                                             text="Y :   ",
                                              bg_color=globals.SECONDARY_BACKGROUND_GRAY)
-        self.map_ycoord_entry = ctk.CTkEntry(master=self.map_coordinates_container,
-                                             bg_color=globals.SECONDARY_BACKGROUND_GRAY)
+        # Legacy
+        # self.map_xcoord_entry = ctk.CTkEntry(master=self.map_coordinates_container,
+        #                                      bg_color=globals.SECONDARY_BACKGROUND_GRAY)
+        # self.map_ycoord_entry = ctk.CTkEntry(master=self.map_coordinates_container,
+        #                                      bg_color=globals.SECONDARY_BACKGROUND_GRAY)
+        self.map_xcoord_entry = PlusMinusEntry(master=self.map_coordinates_container,
+                                               bg_color=globals.SECONDARY_BACKGROUND_GRAY,
+                                               fg_color=globals.SECONDARY_BACKGROUND_GRAY)
+        self.map_ycoord_entry = PlusMinusEntry(master=self.map_coordinates_container,
+                                               bg_color=globals.SECONDARY_BACKGROUND_GRAY,
+                                               fg_color=globals.SECONDARY_BACKGROUND_GRAY)
+        self.map_xcoord_entry.entry_variable.trace_add("write",
+                                                       lambda *_: show_map())
+        self.map_ycoord_entry.entry_variable.trace_add("write",
+                                                       lambda *_: show_map())
         self.map_coord_value_error_label = ctk.CTkLabel(master=self.map_coordinates_container,
                                                         text="")
-        self.show_map_button = ctk.CTkButton(master=self.map_coordinates_container,
-                                               text="Show map",
-                                               command=show_map)
 
         ########## 2nd column
         self.map_click_coordinates_label = ctk.CTkLabel(master=self.map_frame,
                                                         text="Associated click coordinates")
         self.map_click_coordinates_textbox = ctk.CTkTextbox(master=self.map_frame,
                                                             height=100)
-        # self.map_click_coordinates_textbox.trace_add("write",
-        #                                              lambda *_: backend.set_map_textbox_changed(True))
+        self.map_click_coordinates_textbox.bind("<<Modified>>",
+                                                lambda _: textbox_modification())
+        self.map_click_coordinates_textbox.bind("<Control-s>", lambda _: save_map_edits())
+        self.map_click_coordinates_textbox.bind("<Control-r>", lambda _: reset_map_edits())
 
         ########## 3rd column
         self.map_buttons_label = ctk.CTkLabel(master=self.map_frame,
@@ -253,22 +438,26 @@ class GeneralTabConstructor():
         self.remove_map_button = ctk.CTkButton(master=self.map_buttons_container,
                                                text="Delete map",
                                                command=delete_map)
-        self.save_map_changes_button = ctk.CTkButton(master=self.map_buttons_container,
-                                             text="Save changes",
-                                             command=save_map_changes)
-        self.reset_map_changes_button = ctk.CTkButton(master=self.map_buttons_container,
-                                                     text="Reset changes",
-                                                     command=reset_map_changes)
-
+        self.save_map_edits_button = ctk.CTkButton(master=self.map_buttons_container,
+                                                     text="Save edits",
+                                                     command=save_map_edits)
+        self.reset_map_edits_button = ctk.CTkButton(master=self.map_buttons_container,
+                                                      text="Reset edits",
+                                                      command=reset_map_edits)
+        self.map_buttons_error_label = ctk.CTkLabel(master=self.map_buttons_container,
+                                                    text="",
+                                                    width=100,
+                                                    height=30,
+                                                    wraplength=100,
+                                                    justify=ctk.CENTER)        
         ####### Placement
         ########## 1st column
         self.map_coordinates_label.grid(column=0, row=0)
-        self.map_xcoord_label.grid(column=0, row=0)
-        self.map_xcoord_entry.grid(column=1, row=0)
+        self.map_xcoord_label.grid(column=0, row=0, pady=(50, 15))
+        self.map_xcoord_entry.grid(column=1, row=0, pady=(50, 15))
         self.map_ycoord_label.grid(column=0, row=1)
-        self.map_ycoord_entry.grid(column=1, row=1, pady=15)
-        self.show_map_button.grid(column=0, row=2, pady=15, columnspan=2, sticky='e')
-        self.map_coord_value_error_label.grid(column=0, row=3, pady=15, columnspan=2)
+        self.map_ycoord_entry.grid(column=1, row=1)
+        self.map_coord_value_error_label.grid(column=0, row=2, pady=15, columnspan=2)
         self.map_coordinates_container.grid(column=0, row=1)
 
         ########## 2nd column
@@ -277,17 +466,21 @@ class GeneralTabConstructor():
         
         ########## 3rd column
         self.map_buttons_label.grid(column=2, row=0)
-        self.add_map_button.grid(column=0, row=0, padx=10)
+        self.add_map_button.grid(column=0, row=0, padx=17, pady=(30, 0))
         self.remove_map_button.grid(column=0, row=1, pady=10)
-        self.save_map_changes_button.grid(column=0, row=2, pady=10)
-        self.reset_map_changes_button.grid(column=0, row=3)
+        self.save_map_edits_button.grid(column=0, row=2, pady=10)
+        self.reset_map_edits_button.grid(column=0, row=3)
+        self.map_buttons_error_label.grid(column=0, row=4, pady=(15, 0), sticky="s")
         self.map_buttons_container.grid(column=2, row=1)
 
         ########## Map frame
         self.map_frame.grid(column=0, row=1, sticky='nsew', pady=5)
 
         ####### Post actions
-        self.map_xcoord_entry.focus_set()
+        # self.main_app.after(1000, lambda: print(f"container (0, 1) has width {self.map_coordinates_container.winfo_width()}"))
+        # self.main_app.after(1000, lambda: print(f"container (2, 1) has width {self.map_buttons_container.winfo_width()}"))
+        self.main_app.after(100, self.map_xcoord_entry.focus_set)
+        show_map()
 
 
         #### Path frame
@@ -298,13 +491,13 @@ class GeneralTabConstructor():
 
         ####### Methods
         def refresh_paths():
-            self.path_files = backend.get_all_paths(self.farming_path_variable.get())
-            self.path_names = []
-            for path in self.path_files:
-                self.path_names.append(path.split("\\")[-1])
+            path_files = backend.get_all_paths(self.farming_path_variable.get())
+            path_names = []
+            for path in path_files:
+                path_names.append(path.split("\\")[-1])
             
-            if len(self.path_names) == 0:
-                self.farming_path.configure(values=self.path_names,
+            if len(path_names) == 0:
+                self.farming_path.configure(values=path_names,
                                             fg_color=globals.DARK_RED,
                                             border_color=globals.CLEAR_RED,
                                             button_color=globals.CLEAR_RED)
@@ -312,8 +505,8 @@ class GeneralTabConstructor():
                                                                          border_color=globals.BORDER_GRAY,
                                                                          button_color=globals.BORDER_GRAY))
             else:
-                self.farming_path.set(self.path_names[0])
-                self.farming_path.configure(values=self.path_names,
+                self.farming_path.set(path_names[0])
+                self.farming_path.configure(values=path_names,
                                             fg_color=globals.DARK_GREEN,
                                             border_color=globals.CLEAR_GREEN,
                                             button_color=globals.CLEAR_GREEN)
@@ -330,10 +523,10 @@ class GeneralTabConstructor():
         def delete_path():#TODO
             pass
 
-        def save_path_changes():#TODO
+        def save_path_edits():#TODO
             pass
 
-        def reset_path_changes():#TODO
+        def reset_path_edits():#TODO
             pass
 
         ####### Content
@@ -372,17 +565,17 @@ class GeneralTabConstructor():
         self.remove_path_button = ctk.CTkButton(master=self.path_buttons_container,
                                                 text="Delete path",
                                                 command=delete_path)
-        self.save_path_changes_button = ctk.CTkButton(master=self.path_buttons_container,
-                                                      text="Save changes",
-                                                      command=save_path_changes)
-        self.reset_path_changes_button = ctk.CTkButton(master=self.path_buttons_container,
-                                                         text="Reset changes",
-                                                         command=reset_path_changes)
+        self.save_path_edits_button = ctk.CTkButton(master=self.path_buttons_container,
+                                                      text="Save edits",
+                                                      command=save_path_edits)
+        self.reset_path_edits_button = ctk.CTkButton(master=self.path_buttons_container,
+                                                         text="Reset edits",
+                                                         command=reset_path_edits)
 
         ####### Placement
         ########## 1st column
         self.farming_path_label.grid(column=0, row=0)
-        self.farming_path.grid(column=0, row=0, pady=15, padx=10)
+        self.farming_path.grid(column=0, row=0, pady=15, padx=17)
         self.refresh_paths_button.grid(column=0, row=1, pady=15)
         self.show_path_button.grid(column=0, row=2)
         self.farming_path_container.grid(column=0, row=1)
@@ -393,14 +586,18 @@ class GeneralTabConstructor():
 
         ########## 3rd column
         self.path_buttons_label.grid(column=2, row=0)
-        self.add_path_button.grid(column=0, row=0, padx=10)
+        self.add_path_button.grid(column=0, row=0, padx=17)
         self.remove_path_button.grid(column=0, row=1, pady=10)
-        self.save_path_changes_button.grid(column=0, row=2, pady=10)
-        self.reset_path_changes_button.grid(column=0, row=3)
+        self.save_path_edits_button.grid(column=0, row=2, pady=10)
+        self.reset_path_edits_button.grid(column=0, row=3)
         self.path_buttons_container.grid(column=2, row=1)
 
         ########## Path frame
         self.path_frame.grid(column=0, row=2, sticky='nsew', pady=5)
+
+        ####### Post actions
+        # self.main_app.after(1000, lambda: print(f"container (0, 2) has width {self.farming_path_container.winfo_width()}"))
+        # self.main_app.after(1000, lambda: print(f"container (2, 1) has width {self.path_buttons_container.winfo_width()}"))
 
 
 
@@ -421,14 +618,56 @@ class CharacterTabConstructor():
         self.character_bot = character_info[2]
 
 
+
+class PlusMinusEntry(ctk.CTkFrame):
+
+    def __init__(self, master, **kwargs):
+        super().__init__(master=master, **kwargs)
+        self.minus = ctk.CTkButton(master=self, text="-", width=30, command=self.subtract)
+        self.entry_variable = ctk.StringVar(value="0")
+        self.entry = ctk.CTkEntry(master=self, width=80, justify=ctk.CENTER, textvariable=self.entry_variable)
+        self.plus = ctk.CTkButton(master=self, text="+", width=30, command=self.add)
+        self.minus.grid(row=0, column=0)
+        self.entry.grid(row=0, column=1, padx=5)
+        self.plus.grid(row=0, column=2)
+    
+    def subtract(self):
+        try:
+            self.minus.focus_set()
+            new_value = int(self.entry.get()) - 1
+            self.entry_variable.set(str(new_value))
+        except ValueError:
+            raise ValueError
+    
+    def add(self):
+        try:
+            self.plus.focus_set()
+            new_value = int(self.entry.get()) + 1
+            self.entry_variable.set(str(new_value))
+        except ValueError:
+            raise ValueError
+    
+    def set(self, text):
+        self.entry_variable.set(text)
+        
+    def get(self):
+        return self.entry_variable.get()
+    
+    def focus_set(self):
+        self.entry.focus_set()
+
+
+
         
 
 class PopUp(ctk.CTkToplevel):
     
     def __init__(self, title, width=300, height=200, duration=0):
         super().__init__()
+        screenw = self.winfo_screenwidth()
+        screenh = self.winfo_screenheight()
         self.title(title)
-        self.geometry(f"{width}x{height}")
+        self.geometry(f"{width}x{height}+{int(screenw/2-width/2)-40}+{int(screenh/2-height/2)-80}")
         if duration:
             self.after(duration, self.destroy)
         self.bind("<Return>", lambda _: self.confirm())
@@ -454,13 +693,13 @@ class XYPopUp(PopUp):
         ctk.CTkLabel(container, text=f"{target} X = ").grid(column=0, row=0, pady=(25, 0))
         self.x_entry = ctk.CTkEntry(container)
         self.x_entry.grid(column=1, row=0, pady=(25, 0))
-        self.x_entry.focus_set()
+        self.after(5, self.x_entry.focus_set)
         ctk.CTkLabel(container, text=f"{target} Y = ").grid(column=0, row=1)
         self.y_entry = ctk.CTkEntry(container)
-        self.y_entry.grid(column=1, row=1, pady=15)
+        self.y_entry.grid(column=1, row=1, pady=(15, 0))
         ctk.CTkButton(container, text="Validate", command=self.confirm).grid(column=0, row=2, columnspan=2, pady=(15, 0), sticky='e')
         self.error_label = ctk.CTkLabel(container, text="")
-        self.error_label.grid(row=3, column=0, columnspan=2, pady=10)
+        self.error_label.grid(row=3, column=0, columnspan=2)
         container.grid()
 
 
@@ -507,7 +746,7 @@ class StartStopClickListening(PopUp):
         super().__init__(title)
         self.geometry("400x300+-10+0")
         self.resizable(False, False)
-        self.protocol("WM_DELETE_WINDOW", self.clean_close)
+        self.protocol("WM_DELETE_WINDOW", self.infirm)
         self.main_app = main_app
         self.attributes("-topmost", True)
         self.configure(bg_color=globals.MAIN_BACKGROUND_GRAY, fg_color=globals.MAIN_BACKGROUND_GRAY)
@@ -520,7 +759,7 @@ class StartStopClickListening(PopUp):
         self.resume_button.grid(column=0, row=1, pady=5, padx=5)
         self.pause_button = ctk.CTkButton(self, text="Pause listening", command=self.pause_click_listening)
         self.pause_button.grid(column=1, row=1, pady=5, padx=5)
-        ctk.CTkButton(self, text="Validate coordinates", command=self.validate_click_coordinates).grid(column=0, row=2, columnspan=2, pady=10)
+        ctk.CTkButton(self, text="Validate coordinates", command=self.confirm).grid(column=0, row=2, columnspan=2, pady=10)
 
         self.click_coordinates = ""
         self.pause = False
@@ -528,20 +767,53 @@ class StartStopClickListening(PopUp):
         self.listener = mouse.Listener(on_click=self.on_click)
         self.listener.start()
 
-    def clean_close(self):
-        previous_pause = self.pause
-        self.pause_click_listening()
-        confirm_popup = ConfirmPopUp("Coordinates", "Give up coordinates ?")
-        confirm_popup.attributes("-topmost", True)
-        confirm_popup.grab_set()
-        self.main_app.wait_window(confirm_popup)
-        if confirm_popup.value:
-            self.click_coordinates = ""
-            self.listener.stop()
-            self.destroy()
-            return
-        if not previous_pause:
-            self.after(100, self.resume_click_listening)
+# Legacy
+# clean close with a pop-up asking before giving coordinates up, may be useful
+    # def clean_close(self):
+    #     previous_pause = self.pause
+    #     self.pause_click_listening()
+    #     confirm_popup = ConfirmPopUp("Coordinates", "Give up coordinates ?")
+    #     confirm_popup.attributes("-topmost", True)
+    #     confirm_popup.grab_set()
+    #     self.main_app.wait_window(confirm_popup)
+    #     if confirm_popup.value:
+    #         self.click_coordinates = ""
+    #         self.listener.stop()
+    #         self.destroy()
+    #         return
+    #     if not previous_pause:
+    #         self.after(100, self.resume_click_listening)
+
+# Current
+# clean close without asking beofre giving up
+    def infirm(self):
+        self.click_coordinates = ""
+        self.listener.stop()
+        self.destroy()
+        return
+    
+# Legacy
+# validate with a pop-up asking before adding, may be useful
+    # def validate_click_coordinates(self):
+    #     previous_pause = self.pause
+    #     self.pause_click_listening()
+    #     confirm_popup = ConfirmPopUp("Coordinates", "Add click coordinates to current map ?")
+    #     confirm_popup.attributes("-topmost", True)
+    #     confirm_popup.grab_set()
+    #     self.main_app.wait_window(confirm_popup)
+    #     if confirm_popup.value:
+    #         self.listener.stop()
+    #         self.destroy()
+    #         return
+    #     if not previous_pause:
+    #         self.after(100, self.resume_click_listening)
+
+# Current    
+# validate without asking beofre adding
+    def confirm(self):
+        self.listener.stop()
+        self.destroy()
+        return
 
     def register_click(self, x, y, pressed):
         if not self.pause:
@@ -554,7 +826,7 @@ class StartStopClickListening(PopUp):
                 self.click_coordinates_textbox.configure(state="disabled")
 
     def on_click(self, x, y, _, pressed):
-        self.after(50, self.register_click, x, y, pressed)
+        self.after(50, lambda: self.register_click(x, y, pressed))
 
     def resume_click_listening(self):
         self.resume_button.configure(state="disabled")
@@ -566,28 +838,10 @@ class StartStopClickListening(PopUp):
         self.pause_button.configure(state="disabled")
         self.pause = True
 
-    def validate_click_coordinates(self):
-        previous_pause = self.pause
-        self.pause_click_listening()
-        confirm_popup = ConfirmPopUp("Coordinates", "Add click coordinates to current map ?")
-        confirm_popup.attributes("-topmost", True)
-        confirm_popup.grab_set()
-        self.main_app.wait_window(confirm_popup)
-        if confirm_popup.value:
-            self.listener.stop()
-            self.destroy()
-            return
-        if not previous_pause:
-            self.after(100, self.resume_click_listening)
-
         
-        
-
-
-        
-
-app = MainApplication()
-app.mainloop()
+if __name__ == "__main__":
+    app = MainApplication()
+    app.mainloop()
 
 
 

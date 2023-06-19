@@ -9,6 +9,9 @@ import win32con
 import pynput.mouse as m
 import pickle
 
+# ==== GLOBAL UTILS ==== #
+def get_all_nth_from_list(iterable, index):
+    return [subiterable[index] for subiterable in iterable]
 
 # ==== WINDOW HANDLING ==== #
 # Get active windows
@@ -37,11 +40,19 @@ def get_character_window(character_name: str) -> Window:
             return window
     return ()
 
+# Bring window to foreground
+def new_map_foreground():
+    window_filtering()
+    if not globals.active_windows:
+        return
+    win = globals.active_windows[0][0]
+    win32gui.SetForegroundWindow(win)
 
 # ==== MAP & CLICKS ==== #
 MapCoords = tuple[int, int]
 ScreenCoords = tuple[int, int]
 Clicks = list[ScreenCoords]
+
 # Get click coordinates associated to map coordinates from file
 def load_click_coordinates(x: int, y: int) -> str:
     with open("data/maps.bin", "rb") as file:
@@ -55,6 +66,7 @@ def load_click_coordinates(x: int, y: int) -> str:
     click_coordinates_as_text = ["("+str(a)+", "+str(b)+")" for a, b in click_coordinates]
     return '\n'.join(click_coordinates_as_text)
 
+# Check if click coordinates exist for given map in file
 def click_coordinates_exist(x: int, y: int) -> bool:
     with open("data/maps.bin", "rb") as file:
         try:
@@ -65,6 +77,7 @@ def click_coordinates_exist(x: int, y: int) -> bool:
             return True
         return False
 
+# Save click coordinates for given map in file
 def save_click_coordinates(x: int, y: int, coordinates: str) -> None:
     with open("data/maps.bin", "rb") as file:
         try:
@@ -82,6 +95,60 @@ def save_click_coordinates(x: int, y: int, coordinates: str) -> None:
     with open("data/maps.bin", "wb") as file:
         pickle.dump(click_coordinates, file)
 
+# Delete click coordinates for given map in file
+def delete_click_coordinates(x: int, y: int) -> None:
+    with open("data/maps.bin", "rb") as file:
+        try:
+            click_coordinates: dict[MapCoords, Clicks] = pickle.load(file)
+        except EOFError:
+            click_coordinates: dict[MapCoords, Clicks] = {}
+
+    try:
+        del click_coordinates[(x, y)]
+    except KeyError:
+        return
+
+    with open("data/maps.bin", "wb") as file:
+        pickle.dump(click_coordinates, file)
+
+# Get click coordinates as list from textbox string
+def str_to_list_coordinates(click_text: str) -> Clicks | None:
+    try:
+        return [(int(coord.replace("(", "").replace(")", "").split(",")[0].strip()),\
+                 int(coord.replace("(", "").replace(")", "").split(",")[1].strip()))\
+                for coord in click_text.strip().split("\n")]    
+    except (IndexError, ValueError):
+        return None
+    
+def set_user_changing(value: bool) -> None:
+    globals.user_changing = value
+
+# Legacy
+# Now using the modified flag of the textbox widget
+# Check wether the clicks have been modified or not
+# def map_textbox_content_changed(x: int, y: int, textbox_click_coordinates: Clicks) -> bool:    
+#     with open("data/maps.bin", "rb") as file:
+#         try:
+#             file_click_coordinates: dict[MapCoords, Clicks] = pickle.load(file)
+#         except EOFError:
+#             file_click_coordinates: dict[MapCoords, Clicks] = {}
+
+#     print(file_click_coordinates[(x, y)])
+#     print(textbox_click_coordinates)
+#     print(file_click_coordinates[(x, y)] == textbox_click_coordinates)
+#     return file_click_coordinates[(x, y)] == textbox_click_coordinates
+
+def edit_click_coordinates(x: int, y: int, textbox_click_coordinates: Clicks) -> None:
+    with open("data/maps.bin", "rb") as file:
+        try:
+            click_coordinates: dict[MapCoords, Clicks] = pickle.load(file)
+        except EOFError:
+            click_coordinates: dict[MapCoords, Clicks] = {}
+
+    click_coordinates[(x, y)] = textbox_click_coordinates
+
+    with open("data/maps.bin", "wb") as file:
+        pickle.dump(click_coordinates, file)
 
 
 # ==== PATHS & MAPS ==== #
@@ -220,7 +287,6 @@ class CharacterBot():
         if self.previous_map == 'r':
             self.x_pos -= 1
         self.previous_map = None
-
 
     def wait_3_sec(self):
         self.cancel_flag = True

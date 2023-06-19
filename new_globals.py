@@ -1,5 +1,5 @@
-import ctypes
-from typing import List, Tuple, Optional, Union, Any
+import ctypes, ctypes.wintypes
+import pickle
 
 # Constants
 CLEAR_RED = '#e60000'
@@ -18,8 +18,10 @@ active_windows: list = []
 active_character_names: list = []
 path_files: list = []
 path_names: list = []
+user_changing: bool = True
 map_textbox_changed: bool = False
 path_textbox_changed: bool = False
+displayed_map: tuple = ()
 
 # ctypes clarity
 DwmGetWindowAttribute = ctypes.WinDLL("dwmapi").DwmGetWindowAttribute
@@ -29,3 +31,18 @@ byref = ctypes.byref
 sizeof = ctypes.sizeof
 DWMWA_CLOAKED = 14 
 isCloacked = ctypes.c_int(0)
+
+# Pickle file read&print (helper)
+MapCoords = tuple[int, int]
+ScreenCoords = tuple[int, int]
+Clicks = list[ScreenCoords]
+def read_print(filename: str) -> dict[MapCoords : Clicks]:
+    try:
+        with open(filename, "rb") as file:
+            try:
+                data = pickle.load(file)
+                return data
+            except EOFError:
+                return {}
+    except FileNotFoundError:
+        return {}
