@@ -69,7 +69,7 @@ Window = tuple[()] | tuple[int, str]
 def get_named_window(filter: str) -> Window:
     global active_windows
     for window in active_windows:
-        if window[1].startswith(filter):
+        if window[1].lower().startswith(filter):
             return window
     return ()
 
@@ -82,9 +82,9 @@ def key_stroke(hwnd, hex_val):
 
 
 if __name__ == "__main__":
-    n_iter = int(sys.argv[1])
+    character = sys.argv[1]
+    n_iter = int(sys.argv[2])
     n_iter = 10_000 if n_iter == -1 else n_iter
-    character = sys.argv[2]
 
     window_filtering()
     hwnd = get_named_window(character)
