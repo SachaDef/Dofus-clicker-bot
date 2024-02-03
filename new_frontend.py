@@ -791,16 +791,14 @@ class StartStopClickListening(PopUp):
         self.geometry("400x300+-10+0")
         self.resizable(False, False)
         self.attributes("-topmost", True)
-        self.grid_columnconfigure((0, 1), weight=1)
+        self.grid_columnconfigure(0, weight=1)
         self.grid_rowconfigure(0, weight=2)
         self.grid_rowconfigure((1, 2), weight=1)
         self.click_coordinates_textbox = ctk.CTkTextbox(self, state="disabled")
-        self.click_coordinates_textbox.grid(column=0, row=0, columnspan=2, pady=5, sticky="new")
-        self.resume_button = ctk.CTkButton(self, text="Resume listening", state="disabled", command=lambda: self.after(100, self.resume_click_listening))
-        self.resume_button.grid(column=0, row=1, pady=5, padx=5)
-        self.pause_button = ctk.CTkButton(self, text="Pause listening", command=self.pause_click_listening)
-        self.pause_button.grid(column=1, row=1, pady=5, padx=5)
-        ctk.CTkButton(self, text="Validate coordinates", command=self.confirm).grid(column=0, row=2, columnspan=2, pady=10)
+        self.click_coordinates_textbox.grid(column=0, row=0, pady=5, sticky="new")
+        self.toggle_listening_button = ctk.CTkButton(self, text="Toggle listening: On", command=self.toggle_click_listening)
+        self.toggle_listening_button.grid(column=0, row=1, pady=5, padx=5)
+        ctk.CTkButton(self, text="Validate coordinates", command=self.confirm).grid(column=0, row=2, pady=10)
 
         self.click_coordinates = ""
         self.pause = False
@@ -857,25 +855,30 @@ class StartStopClickListening(PopUp):
         return
 
     def register_click(self, x, y):
-        x, y = int(x), int(y)
-        coords = f"({x},{y});"
-        self.click_coordinates += coords
-        self.click_coordinates_textbox.configure(state="normal")
-        self.click_coordinates_textbox.insert('end', coords+"\n")
-        self.click_coordinates_textbox.configure(state="disabled")
+        if not self.pause:
+            x, y = int(x), int(y)
+            coords = f"({x},{y});"
+            self.click_coordinates += coords
+            self.click_coordinates_textbox.configure(state="normal")
+            self.click_coordinates_textbox.insert('end', coords+"\n")
+            self.click_coordinates_textbox.configure(state="disabled")
 
     def on_click(self, x, y, _, pressed):
-        if pressed and not self.pause:
+        if pressed:
             self.after(50, lambda: self.register_click(x, y))
 
+    def toggle_click_listening(self):
+        if self.pause:
+            self.toggle_listening_button.configure(text="Toggle listening: On")
+            self.after(100, self.resume_click_listening)
+        else:
+            self.toggle_listening_button.configure(text="Toggle listening: Off")
+            self.pause_click_listening()
+
     def resume_click_listening(self):
-        self.resume_button.configure(state="disabled")
-        self.pause_button.configure(state="normal")
         self.pause = False
 
     def pause_click_listening(self):
-        self.resume_button.configure(state="normal")
-        self.pause_button.configure(state="disabled")
         self.pause = True
 
         
