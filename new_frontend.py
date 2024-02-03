@@ -83,34 +83,62 @@ class MainApplication(ctk.CTk):
     def left(self, event):
         match self.tabs.get():
             case "General":
-                if event.widget not in (self.general_constructor.map_click_coordinates_textbox._textbox,
+                if event.widget in (self.general_constructor.map_click_coordinates_textbox._textbox,
                                         self.general_constructor.path_map_coordinates_textbox._textbox,
                                         self.general_constructor.farming_path._entry):
-                    self.general_constructor.map_xcoord_entry.subtract()
+                    return
+                if globals.map_textbox_changed:
+                    confirm_popup = ConfirmPopUp("Show map - Conflict", f"Discard edits made for map ({globals.displayed_map[0]}, {globals.displayed_map[1]}) ?")
+                    confirm_popup.grab_set()
+                    self.wait_window(confirm_popup)
+                    if not confirm_popup.value:
+                        return
+                self.general_constructor.map_xcoord_entry.subtract()
 
     def right(self, event):
         match self.tabs.get():
             case "General":
-                if event.widget not in (self.general_constructor.path_map_coordinates_textbox._textbox,
-                                        self.general_constructor.map_click_coordinates_textbox._textbox,
+                if event.widget in (self.general_constructor.map_click_coordinates_textbox._textbox,
+                                        self.general_constructor.path_map_coordinates_textbox._textbox,
                                         self.general_constructor.farming_path._entry):
-                    self.general_constructor.map_xcoord_entry.add()
+                    return
+                if globals.map_textbox_changed:
+                    confirm_popup = ConfirmPopUp("Show map - Conflict", f"Discard edits made for map ({globals.displayed_map[0]}, {globals.displayed_map[1]}) ?")
+                    confirm_popup.grab_set()
+                    self.wait_window(confirm_popup)
+                    if not confirm_popup.value:
+                        return
+                self.general_constructor.map_xcoord_entry.add()
 
     def up(self, event):
         match self.tabs.get():
             case "General":
-                if event.widget not in (self.general_constructor.path_map_coordinates_textbox._textbox,
-                                        self.general_constructor.map_click_coordinates_textbox._textbox,
+                if event.widget in (self.general_constructor.map_click_coordinates_textbox._textbox,
+                                        self.general_constructor.path_map_coordinates_textbox._textbox,
                                         self.general_constructor.farming_path._entry):
-                    self.general_constructor.map_ycoord_entry.subtract()
+                    return
+                if globals.map_textbox_changed:
+                    confirm_popup = ConfirmPopUp("Show map - Conflict", f"Discard edits made for map ({globals.displayed_map[0]}, {globals.displayed_map[1]}) ?")
+                    confirm_popup.grab_set()
+                    self.wait_window(confirm_popup)
+                    if not confirm_popup.value:
+                        return
+                self.general_constructor.map_ycoord_entry.subtract()
 
     def down(self, event):
         match self.tabs.get():
             case "General":
-                if event.widget not in (self.general_constructor.path_map_coordinates_textbox._textbox,
-                                        self.general_constructor.map_click_coordinates_textbox._textbox,
+                if event.widget in (self.general_constructor.map_click_coordinates_textbox._textbox,
+                                        self.general_constructor.path_map_coordinates_textbox._textbox,
                                         self.general_constructor.farming_path._entry):
-                    self.general_constructor.map_ycoord_entry.add()
+                    return
+                if globals.map_textbox_changed:
+                    confirm_popup = ConfirmPopUp("Show map - Conflict", f"Discard edits made for map ({globals.displayed_map[0]}, {globals.displayed_map[1]}) ?")
+                    confirm_popup.grab_set()
+                    self.wait_window(confirm_popup)
+                    if not confirm_popup.value:
+                        return
+                self.general_constructor.map_ycoord_entry.add()
 
     def n(self, event):
         match self.tabs.get():
@@ -289,12 +317,12 @@ class GeneralTabConstructor():
                     map_x, map_y = get_xy()
                 except TypeError:
                     return
-            if globals.map_textbox_changed:
-                confirm_popup = ConfirmPopUp("Show map - Conflict", f"Discard edits made for map ({globals.displayed_map[0]}, {globals.displayed_map[1]}) ?")
-                confirm_popup.grab_set()
-                self.main_app.wait_window(confirm_popup)
-                if not confirm_popup.value:
-                    return
+            # if globals.map_textbox_changed:
+            #     confirm_popup = ConfirmPopUp("Show map - Conflict", f"Discard edits made for map ({globals.displayed_map[0]}, {globals.displayed_map[1]}) ?")
+            #     confirm_popup.grab_set()
+            #     self.main_app.wait_window(confirm_popup)
+            #     if not confirm_popup.value:
+            #         return
             backend.set_user_changing(False)
             self.map_click_coordinates_textbox.delete("1.0", 'end')
             self.map_click_coordinates_textbox.insert("1.0", backend.load_click_coordinates(map_x, map_y))
