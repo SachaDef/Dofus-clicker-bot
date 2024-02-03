@@ -193,7 +193,7 @@ class GeneralTabConstructor():
                                                 button_color=globals.CLEAR_GREEN)
                 self.tab.after(1000, lambda: self.character_window.configure(fg_color=globals.ENTRY_GRAY,
                                                                              button_color=globals.BORDER_GRAY))
-            self.tab.after(1000, lambda: self.main_app.set_button_freeze("refresh", False))
+            self.tab.after(1100, lambda: self.main_app.set_button_freeze("refresh", False))
 
         def validate_character():
             character_name = self.character_window_variable.get()
@@ -217,7 +217,8 @@ class GeneralTabConstructor():
                 return
 
             character_bot = backend.CharacterBot(character_name, character_x, character_y, character_window[0])
-            character_info = (character_name, self.main_app.tabs.add(character_name), character_bot)
+            character_tab = self.main_app.tabs.add(character_name)
+            character_info = (character_name, character_tab, character_bot)
             globals.tracked_characters.append(character_info)
             CharacterTabConstructor(self.main_app, character_info)
             validate_character()
