@@ -147,3 +147,8 @@ test.py
 
 # todo file
 todo
+
+# user-dependant data
+backup_close/
+backup_open/
+data/
