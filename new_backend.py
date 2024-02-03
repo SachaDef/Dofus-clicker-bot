@@ -1,17 +1,38 @@
 import new_globals as globals
-import win32gui
+import win32gui, win32api, win32con
 import os
 import time
 import pyautogui as pag
 import threading
-import win32api
-import win32con
 import pynput.mouse as m
 import pickle
 
 # ==== GLOBAL UTILS ==== #
 def get_all_nth_from_list(iterable, index):
     return [subiterable[index] for subiterable in iterable]
+
+# Button freeze functionalities
+def set_button_freeze(button: str, value: bool):
+    match button:
+        case "refresh":
+            globals.refresh_freeze = value
+        case "map_xy":
+            globals.map_xy_freeze = value
+        case "popup_xy":
+            globals.popup_xy_freeze = value
+        case _:
+            return
+        
+def get_button_freeze(button: str) -> bool:
+    match button:
+        case "refresh":
+            return globals.refresh_freeze
+        case "map_xy":
+            return globals.map_xy_freeze
+        case "popup_xy":
+            return globals.popup_xy_freeze
+        case _:
+            return False
 
 # ==== WINDOW HANDLING ==== #
 # Get active windows
@@ -40,7 +61,7 @@ def get_character_window(character_name: str) -> Window:
             return window
     return ()
 
-# Bring window to foreground
+# Set dofus as foreground window
 def new_map_foreground():
     window_filtering()
     if not globals.active_windows:
@@ -48,28 +69,6 @@ def new_map_foreground():
     win = globals.active_windows[0][0]
     win32gui.SetForegroundWindow(win)
 
-# Button freeze functionalities
-def set_button_freeze(button: str, value: bool):
-    match button:
-        case "refresh":
-            globals.refresh_freeze = value
-        case "map_xy":
-            globals.map_xy_freeze = value
-        case "popup_xy":
-            globals.popup_xy_freeze = value
-        case _:
-            return
-        
-def get_button_freeze(button: str) -> bool:
-    match button:
-        case "refresh":
-            return globals.refresh_freeze
-        case "map_xy":
-            return globals.map_xy_freeze
-        case "popup_xy":
-            return globals.popup_xy_freeze
-        case _:
-            return False
 
 # ==== MAP & CLICKS ==== #
 MapCoords = tuple[int, int]

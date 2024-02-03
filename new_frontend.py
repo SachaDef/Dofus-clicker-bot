@@ -788,17 +788,19 @@ class StartStopClickListening(PopUp):
     def __init__(self, title: str, main_app: MainApplication):
         super().__init__(title)
         self.main_app = main_app
-        self.geometry("400x300+-10+0")
+        self.geometry("400x300+10+10")
         self.resizable(False, False)
+        self.overrideredirect(True)
         self.attributes("-topmost", True)
-        self.grid_columnconfigure(0, weight=1)
+        self.grid_columnconfigure((0, 1), weight=1)
         self.grid_rowconfigure(0, weight=2)
         self.grid_rowconfigure((1, 2), weight=1)
         self.click_coordinates_textbox = ctk.CTkTextbox(self, state="disabled")
-        self.click_coordinates_textbox.grid(column=0, row=0, pady=5, sticky="new")
+        self.click_coordinates_textbox.grid(column=0, row=0, columnspan=2, pady=5, sticky="new")
         self.toggle_listening_button = ctk.CTkButton(self, text="Toggle listening: On", command=self.toggle_click_listening)
-        self.toggle_listening_button.grid(column=0, row=1, pady=5, padx=5)
-        ctk.CTkButton(self, text="Validate coordinates", command=self.confirm).grid(column=0, row=2, pady=10)
+        self.toggle_listening_button.grid(column=0, row=1, columnspan=2, pady=5, padx=5)
+        ctk.CTkButton(self, text="Validate coordinates", command=self.confirm).grid(column=0, row=2, pady=10, padx=(50, 0))
+        ctk.CTkButton(self, text="Discard coordinates", command=self.infirm).grid(column=1, row=2, pady=10, padx=(0, 50))
 
         self.click_coordinates = ""
         self.pause = False
@@ -848,7 +850,7 @@ class StartStopClickListening(PopUp):
     #         self.after(100, self.resume_click_listening)
 
 # Current    
-# validate without asking beofre adding
+# validate without asking before adding
     def confirm(self):
         self.listener.stop()
         self.destroy()
