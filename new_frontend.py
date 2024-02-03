@@ -22,7 +22,7 @@ class MainApplication(ctk.CTk):
         self.geometry(f"{self.width}x{self.height}")
         self.title("DofusBot")
         self.iconbitmap(r'img\icon.ico')
-        self.minsize(800, 600)
+        self.minsize(self.width, self.height)
         backend.save_backup("open")
         self.protocol("WM_DELETE_WINDOW", self.clean_exit)
         self.after(5, lambda: self.state("zoomed"))
@@ -50,11 +50,18 @@ class MainApplication(ctk.CTk):
         self.bind("<Control-n>", self.n)
         self.bind("<Control-d>", self.d)
         self.bind("<Control-Shift-KeyPress-N>", self.N)
+        self.bind("<Control-p>", self.print_sizes)
 
     # Methods
     def clean_exit(self):
         backend.save_backup("close")
         self.destroy()
+
+    def print_sizes(self, _):
+        map_frame = self.general_constructor.map_frame
+        path_frame = self.general_constructor.path_frame
+        print(map_frame.winfo_width(), map_frame.winfo_height())
+        print(path_frame.winfo_width(), path_frame.winfo_height())
 
     def remove_focus(self, event):
         if event.widget not in (self.general_constructor.map_click_coordinates_textbox._textbox,
@@ -137,13 +144,12 @@ class GeneralTabConstructor():
 
         # Initialization
         self.tab.grid_columnconfigure(0, weight=1)
-        self.tab.grid_rowconfigure(0, weight=2)
-        self.tab.grid_rowconfigure(1, weight=4)
-        self.tab.grid_rowconfigure(2, weight=7) #TODO:weights ?
-        # I do not understand why (1,2,2) weights doesn't give the 2 last rows the same height, (2,4,7) weights seemed to do it better
-        # I now understand, the configuration doesn't split the rows' sizes according to the weight, it only splits the 
-        # REMAINING EMPTY SPACE between them. A fix would be to artificially pad the rows so they have the same height without the
-        # empty space, and then with the same weight they will have the same final height
+        self.tab.grid_rowconfigure(0, weight=1)
+        self.tab.grid_rowconfigure(1, weight=2)
+        self.tab.grid_rowconfigure(2, weight=2)
+        # WARNING : the configuration doesn't split the rows' sizes according to the weight, it only splits the 
+        # REMAINING EMPTY SPACE between them. Before the frames did not have the same dimensions, now fixed, so the
+        # (1,2,2) ratio works normally
         self.character_frame = ctk.CTkFrame(master=self.tab)
         self.map_frame = ctk.CTkFrame(master=self.tab)
         self.path_frame = ctk.CTkFrame(master=self.tab)
@@ -571,6 +577,12 @@ class GeneralTabConstructor():
         self.reset_path_edits_button = ctk.CTkButton(master=self.path_buttons_container,
                                                          text="Reset edits",
                                                          command=reset_path_edits)
+        self.path_buttons_error_label = ctk.CTkLabel(master=self.path_buttons_container,
+                                                     text="",
+                                                     width=100,
+                                                     height=30,
+                                                     wraplength=100,
+                                                     justify=ctk.CENTER)
 
         ####### Placement
         ########## 1st column
@@ -586,10 +598,11 @@ class GeneralTabConstructor():
 
         ########## 3rd column
         self.path_buttons_label.grid(column=2, row=0)
-        self.add_path_button.grid(column=0, row=0, padx=17)
+        self.add_path_button.grid(column=0, row=0, padx=17, pady=(30, 0))
         self.remove_path_button.grid(column=0, row=1, pady=10)
         self.save_path_edits_button.grid(column=0, row=2, pady=10)
         self.reset_path_edits_button.grid(column=0, row=3)
+        self.path_buttons_error_label.grid(column=0, row=4, pady=(15, 0), sticky="s")
         self.path_buttons_container.grid(column=2, row=1)
 
         ########## Path frame
