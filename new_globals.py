@@ -25,6 +25,7 @@ displayed_map: tuple = ()
 
 # buttons freezes
 refresh_freeze: bool = False
+map_xy_freeze: bool = False
 
 # ctypes clarity
 DwmGetWindowAttribute = ctypes.WinDLL("dwmapi").DwmGetWindowAttribute

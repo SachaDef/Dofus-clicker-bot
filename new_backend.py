@@ -48,6 +48,25 @@ def new_map_foreground():
     win = globals.active_windows[0][0]
     win32gui.SetForegroundWindow(win)
 
+# Button freeze functionalities
+def set_button_freeze(button: str, value: bool):
+    match button:
+        case "refresh":
+            globals.refresh_freeze = value
+        case "map_xy":
+            globals.map_xy_freeze = value
+        case _:
+            return
+        
+def get_button_freeze(button: str) -> bool:
+    match button:
+        case "refresh":
+            return globals.refresh_freeze
+        case "map_xy":
+            return globals.map_xy_freeze
+        case _:
+            return False
+
 # ==== MAP & CLICKS ==== #
 MapCoords = tuple[int, int]
 ScreenCoords = tuple[int, int]
@@ -73,9 +92,7 @@ def click_coordinates_exist(x: int, y: int) -> bool:
             click_coordinates: dict[MapCoords, Clicks] = pickle.load(file)   #TODO cache ?
         except EOFError:
             return False
-        if (x, y) in click_coordinates.keys():
-            return True
-        return False
+        return (x, y) in click_coordinates.keys()
 
 # Save click coordinates for given map in file
 def save_click_coordinates(x: int, y: int, coordinates: str) -> None:

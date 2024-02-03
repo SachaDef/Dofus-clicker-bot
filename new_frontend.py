@@ -161,21 +161,6 @@ class MainApplication(ctk.CTk):
             case _:
                 return
             
-    def set_button_freeze(self, button: str, value: bool):
-        match button:
-            case "refresh":
-                globals.refresh_freeze = value
-            case _:
-                return
-            
-    def get_button_freeze(self, button: str) -> bool:
-        match button:
-            case "refresh":
-                return globals.refresh_freeze
-            case _:
-                return False
-
-
 
 class GeneralTabConstructor():
 
@@ -203,9 +188,9 @@ class GeneralTabConstructor():
 
         ####### Methods
         def refresh_windows():
-            if self.main_app.get_button_freeze("refresh"):
+            if backend.get_button_freeze("refresh"):
                 return
-            self.main_app.set_button_freeze("refresh", True)
+            backend.set_button_freeze("refresh", True)
             backend.window_filtering()
             if len(globals.active_character_names) == 0:
                 self.character_window_variable.set("Character name")
@@ -221,7 +206,7 @@ class GeneralTabConstructor():
                                                 button_color=globals.CLEAR_GREEN)
                 self.tab.after(1000, lambda: self.character_window.configure(fg_color=globals.ENTRY_GRAY,
                                                                              button_color=globals.BORDER_GRAY))
-            self.tab.after(1100, lambda: self.main_app.set_button_freeze("refresh", False))
+            self.tab.after(1100, lambda: backend.set_button_freeze("refresh", False))
 
         def validate_character():
             character_name = self.character_window_variable.get()
@@ -302,8 +287,11 @@ class GeneralTabConstructor():
                 map_x, map_y = int(self.map_xcoord_entry.get()), int(self.map_ycoord_entry.get())
                 return map_x, map_y
             except ValueError:
-                self.map_coord_value_error_label.configure(text="Invalid coordinates")
-                self.main_app.after(1000, lambda: self.map_coord_value_error_label.configure(text=""))
+                if not backend.get_button_freeze("map_xy"):
+                    backend.set_button_freeze("map_xy", True)
+                    self.map_coord_value_error_label.configure(text="Invalid coordinates")
+                    self.main_app.after(1000, lambda: self.map_coord_value_error_label.configure(text=""))
+                    self.main_app.after(1100, lambda: backend.set_button_freeze("map_xy", False))
                 self.map_xcoord_entry.set("0")
                 self.map_ycoord_entry.set("0")
                 self.map_xcoord_entry.focus_set()
@@ -317,12 +305,6 @@ class GeneralTabConstructor():
                     map_x, map_y = get_xy()
                 except TypeError:
                     return
-            # if globals.map_textbox_changed:
-            #     confirm_popup = ConfirmPopUp("Show map - Conflict", f"Discard edits made for map ({globals.displayed_map[0]}, {globals.displayed_map[1]}) ?")
-            #     confirm_popup.grab_set()
-            #     self.main_app.wait_window(confirm_popup)
-            #     if not confirm_popup.value:
-            #         return
             backend.set_user_changing(False)
             self.map_click_coordinates_textbox.delete("1.0", 'end')
             self.map_click_coordinates_textbox.insert("1.0", backend.load_click_coordinates(map_x, map_y))
@@ -338,10 +320,10 @@ class GeneralTabConstructor():
             except TypeError:
                 return
             if backend.click_coordinates_exist(map_x, map_y):
-                confirm_popup2 = ConfirmPopUp("New map", "Already existing coordinates. Overwrite them ?")
-                confirm_popup2.grab_set()
-                self.main_app.wait_window(confirm_popup2)
-                if not confirm_popup2.value:
+                confirm_popup = ConfirmPopUp("New map", "Already existing coordinates. Overwrite them ?")
+                confirm_popup.grab_set()
+                self.main_app.wait_window(confirm_popup)
+                if not confirm_popup.value:
                     return
             self.main_app.after(200, backend.new_map_foreground)
             click_popup = StartStopClickListening("Click Listener", self.main_app)
