@@ -55,6 +55,8 @@ def set_button_freeze(button: str, value: bool):
             globals.refresh_freeze = value
         case "map_xy":
             globals.map_xy_freeze = value
+        case "popup_xy":
+            globals.popup_xy_freeze = value
         case _:
             return
         
@@ -64,6 +66,8 @@ def get_button_freeze(button: str) -> bool:
             return globals.refresh_freeze
         case "map_xy":
             return globals.map_xy_freeze
+        case "popup_xy":
+            return globals.popup_xy_freeze
         case _:
             return False
 

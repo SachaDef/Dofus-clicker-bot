@@ -710,6 +710,8 @@ class PopUp(ctk.CTkToplevel):
         screenh = self.winfo_screenheight()
         self.title(title)
         self.geometry(f"{width}x{height}+{int(screenw/2-width/2)-40}+{int(screenh/2-height/2)-80}")
+        self.configure(bg_color=globals.MAIN_BACKGROUND_GRAY, fg_color=globals.MAIN_BACKGROUND_GRAY)
+        self.protocol("WM_DELETE_WINDOW", self.infirm)
         if duration:
             self.after(duration, self.destroy)
         self.bind("<Return>", lambda _: self.confirm())
@@ -728,7 +730,6 @@ class XYPopUp(PopUp):
         super().__init__(title)
         self.x_value=None
         self.y_value=None
-        self.configure(bg_color=globals.MAIN_BACKGROUND_GRAY, fg_color=globals.MAIN_BACKGROUND_GRAY)
         self.grid_columnconfigure(0, weight=1)
         self.grid_rowconfigure(0, weight=1)
         container = ctk.CTkFrame(self, fg_color=globals.MAIN_BACKGROUND_GRAY)
@@ -744,7 +745,6 @@ class XYPopUp(PopUp):
         self.error_label.grid(row=3, column=0, columnspan=2)
         container.grid()
 
-
     def confirm(self):
         if 1 <= len(self.x_entry.get()) <= 4 and 1 <= len(self.y_entry.get()) <= 4\
         and self.x_entry.get().replace("-", "").isdigit() and self.y_entry.get().replace("-", "").isdigit():
@@ -755,8 +755,11 @@ class XYPopUp(PopUp):
             self.x_entry.delete(0, 'end')
             self.y_entry.delete(0, 'end')
             self.x_entry.focus_set()
-            self.error_label.configure(text="Invalid coordinates")
-            self.after(1000, lambda: self.error_label.configure(text=""))
+            if not backend.get_button_freeze("popup_xy"):
+                backend.set_button_freeze("popup_xy", True)
+                self.error_label.configure(text="Invalid coordinates")
+                self.after(1000, lambda: self.error_label.configure(text=""))
+                self.after(1100, lambda: backend.set_button_freeze("popup_xy", False))
 
 
 class ConfirmPopUp(PopUp):
@@ -764,8 +767,6 @@ class ConfirmPopUp(PopUp):
     def __init__(self, title, text):
         super().__init__(title)
         self.value = None
-        self.protocol("WM_DELETE_WINDOW", self.infirm)
-        self.configure(bg_color=globals.MAIN_BACKGROUND_GRAY, fg_color=globals.MAIN_BACKGROUND_GRAY)
         self.grid_columnconfigure((0, 1), weight=1)
         self.grid_rowconfigure((0, 1), weight=1)
         ctk.CTkLabel(self, text=text).grid(column=0, row=0, columnspan=2)
@@ -784,14 +785,12 @@ class ConfirmPopUp(PopUp):
 
 class StartStopClickListening(PopUp):
 
-    def __init__(self, title, main_app: MainApplication):
+    def __init__(self, title: str, main_app: MainApplication):
         super().__init__(title)
+        self.main_app = main_app
         self.geometry("400x300+-10+0")
         self.resizable(False, False)
-        self.protocol("WM_DELETE_WINDOW", self.infirm)
-        self.main_app = main_app
         self.attributes("-topmost", True)
-        self.configure(bg_color=globals.MAIN_BACKGROUND_GRAY, fg_color=globals.MAIN_BACKGROUND_GRAY)
         self.grid_columnconfigure((0, 1), weight=1)
         self.grid_rowconfigure(0, weight=2)
         self.grid_rowconfigure((1, 2), weight=1)
@@ -857,18 +856,17 @@ class StartStopClickListening(PopUp):
         self.destroy()
         return
 
-    def register_click(self, x, y, pressed):
-        if not self.pause:
-            if pressed:
-                x, y = int(x), int(y)
-                coords = f"({x},{y});"
-                self.click_coordinates += coords
-                self.click_coordinates_textbox.configure(state="normal")
-                self.click_coordinates_textbox.insert('end', coords+"\n")
-                self.click_coordinates_textbox.configure(state="disabled")
+    def register_click(self, x, y):
+        x, y = int(x), int(y)
+        coords = f"({x},{y});"
+        self.click_coordinates += coords
+        self.click_coordinates_textbox.configure(state="normal")
+        self.click_coordinates_textbox.insert('end', coords+"\n")
+        self.click_coordinates_textbox.configure(state="disabled")
 
     def on_click(self, x, y, _, pressed):
-        self.after(50, lambda: self.register_click(x, y, pressed))
+        if pressed and not self.pause:
+            self.after(50, lambda: self.register_click(x, y))
 
     def resume_click_listening(self):
         self.resume_button.configure(state="disabled")
