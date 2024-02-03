@@ -23,6 +23,9 @@ map_textbox_changed: bool = False
 path_textbox_changed: bool = False
 displayed_map: tuple = ()
 
+# buttons freezes
+refresh_freeze: bool = False
+
 # ctypes clarity
 DwmGetWindowAttribute = ctypes.WinDLL("dwmapi").DwmGetWindowAttribute
 HWND = ctypes.wintypes.HWND

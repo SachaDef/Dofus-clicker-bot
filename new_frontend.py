@@ -132,6 +132,20 @@ class MainApplication(ctk.CTk):
                 self.general_constructor.add_path_button._command()
             case _:
                 return
+            
+    def set_button_freeze(self, button: str, value: bool):
+        match button:
+            case "refresh":
+                globals.refresh_freeze = value
+            case _:
+                return
+            
+    def get_button_freeze(self, button: str) -> bool:
+        match button:
+            case "refresh":
+                return globals.refresh_freeze
+            case _:
+                return False
 
 
 
@@ -161,6 +175,9 @@ class GeneralTabConstructor():
 
         ####### Methods
         def refresh_windows():
+            if self.main_app.get_button_freeze("refresh"):
+                return
+            self.main_app.set_button_freeze("refresh", True)
             backend.window_filtering()
             if len(globals.active_character_names) == 0:
                 self.character_window_variable.set("Character name")
@@ -176,6 +193,7 @@ class GeneralTabConstructor():
                                                 button_color=globals.CLEAR_GREEN)
                 self.tab.after(1000, lambda: self.character_window.configure(fg_color=globals.ENTRY_GRAY,
                                                                              button_color=globals.BORDER_GRAY))
+            self.tab.after(1000, lambda: self.main_app.set_button_freeze("refresh", False))
 
         def validate_character():
             character_name = self.character_window_variable.get()
