@@ -92,9 +92,12 @@ def main():
             gl.popQ.MyPut("home")
             gl.popQ.open = False
         elif key == k.Key.end:
-            dofus_bot.travel_start()
             gl.popQ.MyPut("end")
             gl.popQ.open = False
+            # gl.queue_flag.wait()
+            # wait for the coordinates to be set before starting the travel
+            # dofus_bot.travel_start()
+            # gl.queue_flag.clear()
         elif key == k.Key.f1:
             gl.popQ.MyPut("pos")
             gl.popQ.open = False

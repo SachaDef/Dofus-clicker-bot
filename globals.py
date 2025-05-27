@@ -1,4 +1,5 @@
 import queue as q
+import threading
 
 class MyQueue(q.Queue):
     def __init__(self):
@@ -19,3 +20,6 @@ class MyQueue(q.Queue):
 
 global popQ
 popQ = MyQueue()
+
+global queue_flag
+queue_flag = threading.Event()
